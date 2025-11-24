@@ -49,7 +49,44 @@ Aplikasi ini dibagi menjadi beberapa modul.
 
 | API | Deskripsi | Penanggung Jawab |
 |-----|-----------|------------------|
-|TBA|TBA|TBA|
+| POST `/api/auth/login` | <i>Login</i> ke aplikasi | Seluruh Anggota |
+| POST `/api/auth/register` | <i>Membuat akun baru</i> | Seluruh Anggota |
+| POST `/api/auth/logout` | <i>logout dari aplikasi</i> | Seluruh Anggota |
+| GET `/fields/api/` | Mendapatkan list seluruh lapangan (bila perlu filtering dan searching, tambahkan parameter yang sesuai) | Faris Huda |
+| POST `/fields/api/` | Menambahkan lapangan baru | Faris Huda |
+| GET `/fields/api/<int:pk>/` | Mendapatkan detail dari suatu lapangan dengan primary key (pk) tertentu | Faris Huda |
+| PATCH `/fields/api/<int:pk>/` | Meng-edit lapangan dengan pk tertentu | Faris Huda |
+| DELETE `/fields/api/<int:pk>/` | Menghapus lapangan dengan pk tertentu | Faris Huda |
+| GET `/api/matches` | Mengambil daftar <i>match</i> yang telah dibuat | Valerian Hizkia Emmanuel |
+| POST `/api/matches` | Membuat sebuah <i>match</i> baru | Valerian Hizkia Emmanuel |
+| PUT `/api/matches/<int:pk>` | Meng-update detail match | Valerian Hizkia Emmanuel |
+| DELETE `/api/matches/<int:pk>` | Menghapus sebuah <i>match</i> | Valerian Hizkia Emmanuel |
+| GET `/api/bookings` | Mengambil daftar <i>booking</i> yang telah dibuat | Valerian Hizkia Emmanuel |
+| POST `/api/bookings` | Membuat sebuah <i>booking</i> baru | Valerian Hizkia Emmanuel |
+| PUT `api/bookings/<int:pk>` | Meng-update detail booking | Valerian Hizkia Emmanuel |
+| DELETE `/api/bookings/<int:pk>` | Menghapus sebuah <i>booking</i> | Valerian Hizkia Emmanuel |
+| GET `/api/matches/<int:slot>` | Mendapatkan daftar jadwal yang telah diambil oleh sebuah <i>match</i> | Valerian Hizkia Emmanuel |
+| GET `/api/bookings/<int:slot>` | Mendapatkan daftar jadwal yang telah diambil oleh sebuah <i>booking</i> | Valerian Hizkia Emmanuel |
+| POST `/tournament/create` | membuat tournament baru | Muhammad Rifqi Ilham |
+| GET `/tournament` | menampilkan tournament | Muhammad Rifqi Ilham |
+| GET `/tournament/<pk>` | melihat detil tournament | Muhammad Rifqi Ilham |
+| PUT `/tournament/<pk>/edit` | mengedit tournament | Muhammad Rifqi Ilham |
+| DELETE `/tournament/<pk>/delete` | menghapus tournament | Muhammad Rifqi Ilham |
+| GET `/tournament/<pk>/matches` | list semua match dalam tournament | Muhammad Rifqi Ilham |
+| GET `/tournament/<pk>/matches/<match_id>` | detail match | Muhammad Rifqi Ilham |
+| POST `/tournament/<pk>/matches/create` | membuat match di tournament | Muhammad Rifqi Ilham |
+| PUT `/tournament/<pk>/matches/<match_id>/edit` | update match | Muhammad Rifqi Ilham |
+| DELETE `/tournament/<pk>/matches/<match_id>/delete` | delete match | Muhammad Rifqi Ilham |
+| GET `/equipments` | Mendapatkan list seluruh equipment  | Fathan Alfahrezi |
+| GET `/equipments/<int:pk>` | Mendapatkan detail dari suatu equipment dengan primary key (pk) tertentu | Fathan Alfahrezi |
+| POST `/equipments` | Menambahkan equipment baru | Fathan Alfahrezi |
+| PATCH `/equipments/<int:pk>` | Meng-edit equipment dengan pk tertentu | Fathan Alfahrezi |
+| DELETE `/equipments/<int:pk>` | Menghapus equipment dengan pk tertentu | Fathan Alfahrezi |
+| GET `/blog` | Mendapatkan list seluruh blog | Geraldus Catur Gigih Wahyudi |
+| GET `/blog/<uuid:id>` | Mendapatkan detail dari suatu blog dengan id tertentu | Geraldus Catur Gigih Wahyudi |
+| POST `/blog` | Menambahkan blog baru | Geraldus Catur Gigih Wahyudi |
+| PATCH `/blog/<uuid:id>` | Meng-edit blog dengan id tertentu | Geraldus Catur Gigih Wahyudi |
+| DELETE `/blog/<uuid:id>` | Menghapus blog dengan id tertentu | Geraldus Catur Gigih Wahyudi |
 
 ## 🖼️ Link Desain
 - https://www.figma.com/design/adNQOklC9KkLehcjLanEan/Matchplay-Mobile?node-id=0-1&p=f&t=3aIdBygfXGnauWeF-0
