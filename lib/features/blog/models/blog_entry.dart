@@ -24,6 +24,7 @@ class Blog {
   String id;
   String title;
   String summary;
+  String content;
   String thumbnail;
   String author;
   DateTime createdAt;
@@ -34,6 +35,7 @@ class Blog {
     required this.id,
     required this.title,
     required this.summary,
+    required this.content,
     required this.thumbnail,
     required this.author,
     required this.createdAt,
@@ -45,6 +47,7 @@ class Blog {
     id: json["id"],
     title: json["title"],
     summary: json["summary"],
+    content: json["content"],
     thumbnail: json["thumbnail"],
     author: json["author"],
     createdAt: DateTime.parse(json["created_at"]),
@@ -56,6 +59,7 @@ class Blog {
     "id": id,
     "title": title,
     "summary": summary,
+    "content": content,
     "thumbnail": thumbnail,
     "author": author,
     "created_at": createdAt.toIso8601String(),

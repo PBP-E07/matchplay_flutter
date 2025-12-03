@@ -1,11 +1,13 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:matchplay_flutter/features/blog/models/blog_entry.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 
 class BlogFormPage extends StatefulWidget {
-  const BlogFormPage({super.key});
+  final Blog? blog;
+  const BlogFormPage({super.key, this.blog});
 
   @override
   State<BlogFormPage> createState() => _BlogFormPageState();
@@ -13,18 +15,41 @@ class BlogFormPage extends StatefulWidget {
 
 class _BlogFormPageState extends State<BlogFormPage> {
   final _formKey = GlobalKey<FormState>();
-  String _title = "";
-  String _author = "";
-  String _summary = "";
-  String _content = "";
-  String _thumbnail = "";
+  
+  late TextEditingController _titleController;
+  late TextEditingController _authorController;
+  late TextEditingController _summaryController;
+  late TextEditingController _contentController;
+  late TextEditingController _thumbnailController;
+
+  bool get _isEditing => widget.blog != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.blog?.title ?? "");
+    _authorController = TextEditingController(text: widget.blog?.author ?? "");
+    _summaryController = TextEditingController(text: widget.blog?.summary ?? "");
+    _contentController = TextEditingController(text: widget.blog?.content ?? "");
+    _thumbnailController = TextEditingController(text: widget.blog?.thumbnail ?? "");
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _authorController.dispose();
+    _summaryController.dispose();
+    _contentController.dispose();
+    _thumbnailController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create New Blog Post'),
+        title: Text(_isEditing ? 'Edit Blog Post' : 'Create New Blog Post'),
       ),
       body: Form(
         key: _formKey,
@@ -35,6 +60,7 @@ class _BlogFormPageState extends State<BlogFormPage> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
+                  controller: _titleController,
                   decoration: const InputDecoration(
                     hintText: "Blog Title",
                     labelText: "Blog Title",
@@ -42,11 +68,6 @@ class _BlogFormPageState extends State<BlogFormPage> {
                       borderRadius: BorderRadius.all(Radius.circular(5.0)),
                     ),
                   ),
-                  onChanged: (String? value) {
-                    setState(() {
-                      _title = value!;
-                    });
-                  },
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {
                       return "Title cannot be empty!";
@@ -58,6 +79,7 @@ class _BlogFormPageState extends State<BlogFormPage> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
+                  controller: _authorController,
                   decoration: const InputDecoration(
                     hintText: "Author",
                     labelText: "Author",
@@ -65,11 +87,6 @@ class _BlogFormPageState extends State<BlogFormPage> {
                       borderRadius: BorderRadius.all(Radius.circular(5.0)),
                     ),
                   ),
-                  onChanged: (String? value) {
-                    setState(() {
-                      _author = value!;
-                    });
-                  },
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {
                       return "Author cannot be empty!";
@@ -81,6 +98,7 @@ class _BlogFormPageState extends State<BlogFormPage> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
+                  controller: _summaryController,
                   decoration: const InputDecoration(
                     hintText: "Summary",
                     labelText: "Summary",
@@ -88,11 +106,6 @@ class _BlogFormPageState extends State<BlogFormPage> {
                       borderRadius: BorderRadius.all(Radius.circular(5.0)),
                     ),
                   ),
-                  onChanged: (String? value) {
-                    setState(() {
-                      _summary = value!;
-                    });
-                  },
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {
                       return "Summary cannot be empty!";
@@ -104,6 +117,7 @@ class _BlogFormPageState extends State<BlogFormPage> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
+                  controller: _contentController,
                   decoration: const InputDecoration(
                     hintText: "What are you thinking about?",
                     labelText: "Content",
@@ -111,11 +125,6 @@ class _BlogFormPageState extends State<BlogFormPage> {
                       borderRadius: BorderRadius.all(Radius.circular(5.0)),
                     ),
                   ),
-                  onChanged: (String? value) {
-                    setState(() {
-                      _content = value!;
-                    });
-                  },
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {
                       return "Content cannot be empty!";
@@ -127,6 +136,7 @@ class _BlogFormPageState extends State<BlogFormPage> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
+                  controller: _thumbnailController,
                   decoration: const InputDecoration(
                     hintText: "Thumbnail URL",
                     labelText: "Thumbnail URL",
@@ -134,11 +144,6 @@ class _BlogFormPageState extends State<BlogFormPage> {
                       borderRadius: BorderRadius.all(Radius.circular(5.0)),
                     ),
                   ),
-                  onChanged: (String? value) {
-                    setState(() {
-                      _thumbnail = value!;
-                    });
-                  },
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {
                       return "Thumbnail URL cannot be empty!";
@@ -154,22 +159,26 @@ class _BlogFormPageState extends State<BlogFormPage> {
                   child: ElevatedButton(
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
-                        // URL of your Django endpoint
+                        final url = _isEditing
+                            ? "http://localhost:8000/blog/edit-flutter/${widget.blog!.id}/"
+                            : "http://localhost:8000/blog/create-flutter/";
+                        
                         final response = await request.postJson(
-                            "http://localhost:8000/blog/create-flutter/",
+                            url,
                             jsonEncode(<String, String>{
-                              'title': _title,
-                              'author': _author,
-                              'summary': _summary,
-                              'content': _content,
-                              'thumbnail': _thumbnail,
+                              '_method': _isEditing ? 'PUT' : 'POST',
+                              'title': _titleController.text,
+                              'author': _authorController.text,
+                              'summary': _summaryController.text,
+                              'content': _contentController.text,
+                              'thumbnail': _thumbnailController.text,
                             }));
                         if (context.mounted) {
-                           if (response['status'] == 'success') {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                              content: Text("New blog post has been saved!"),
+                           if (response['status'] == 'ok') {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text("Blog post has been ${_isEditing ? 'updated' : 'saved'}!"),
                             ));
-                            Navigator.pop(context); // Go back to the previous screen
+                            Navigator.pop(context);
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                               content:
