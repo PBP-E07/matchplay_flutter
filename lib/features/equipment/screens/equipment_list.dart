@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-import 'package:matchplay_flutter/features/equipment/models/equipment.dart'; // Sesuaikan nama project lu
-import 'package:matchplay_flutter/widgets/left_drawer.dart'; // Sesuaikan lokasi drawer lu
+import 'package:matchplay_flutter/features/equipment/models/equipment.dart';
+import 'package:matchplay_flutter/widgets/left_drawer.dart';
+import 'package:matchplay_flutter/features/equipment/screens/equipment_form.dart';
 
 class EquipmentPage extends StatefulWidget {
   const EquipmentPage({super.key});
@@ -43,7 +44,8 @@ class _EquipmentPageState extends State<EquipmentPage> {
       body: FutureBuilder(
         future: fetchEquipment(request),
         builder: (context, AsyncSnapshot snapshot) {
-          if (snapshot.data == null) {
+          // 1. Handle Loading
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else {
             if (!snapshot.hasData) {
@@ -63,14 +65,10 @@ class _EquipmentPageState extends State<EquipmentPage> {
                   final item = snapshot.data![index];
                   // Rakit URL Gambar (Base URL Django + Path Gambar)
                   // Ganti 127.0.0.1 dengan 10.0.2.2 kalau pake Emulator
-                  String imageUrl =
-                      'http://127.0.0.1:8000/media/${item.fields.image}';
+                  String imageUrl = 'http://127.0.0.1:8000/media/${item.fields.image}';
 
                   return Card(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Padding(
                       padding: const EdgeInsets.all(20.0),
                       child: Column(
@@ -78,16 +76,16 @@ class _EquipmentPageState extends State<EquipmentPage> {
                         children: [
                           // Tampilkan Gambar (Kalau ada)
                           if (item.fields.image.isNotEmpty)
-                            Image.network(
-                              imageUrl,
-                              height: 150,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              errorBuilder: (ctx, error, stackTrace) =>
-                                  const Icon(Icons.broken_image, size: 50),
-                            ),
+                             Image.network(
+                               imageUrl, 
+                               height: 150, 
+                               width: double.infinity, 
+                               fit: BoxFit.cover,
+                               errorBuilder: (ctx, error, stackTrace) => 
+                                 const Icon(Icons.broken_image, size: 50),
+                             ),
                           const SizedBox(height: 10),
-
+                          
                           Text(
                             item.fields.name,
                             style: const TextStyle(
@@ -111,12 +109,21 @@ class _EquipmentPageState extends State<EquipmentPage> {
         },
       ),
       // Tombol Tambah (Floating Action Button)
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
+        // Bikin tombol jadi lonjong ada tulisannya (Lebih Keren & Modern)
+        label: const Text(
+          'Tambah Item',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        icon: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: Colors.blueAccent, // Sesuaikan warna tema
+        // Logic Navigasi (Biar bisa dipencet)
         onPressed: () {
-          // Nanti kita arahin ke form di sini
-          // Navigator.push(context, MaterialPageRoute(builder: (context) => const EquipmentFormPage()));
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const EquipmentFormPage()),
+          );
         },
-        child: const Icon(Icons.add),
       ),
     );
   }

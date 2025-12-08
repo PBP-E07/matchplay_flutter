@@ -159,7 +159,7 @@ class _EquipmentFormPageState extends State<EquipmentFormPage> {
                         // Kirim ke Django (Ganti URL sesuai endpoint lu)
                         // PENTING: Ganti 10.0.2.2 kalau pake Emulator
                         final response = await request.postJson(
-                          "http://10.0.2.2:8000/equipment/create-flutter/",
+                          "http://127.0.0.1:8000/equipment/create-flutter/",
                           jsonEncode(<String, String>{
                             'name': _name,
                             'quantity': _quantity.toString(),
