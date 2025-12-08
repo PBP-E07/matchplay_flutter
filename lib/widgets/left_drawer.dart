@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:matchplay_flutter/main.dart';
+import 'package:matchplay_flutter/features/dashboard/screens/field_management_screen.dart';
 import 'package:matchplay_flutter/features/equipment/screens/equipment_list.dart';
 import 'package:matchplay_flutter/main.dart'; 
 
@@ -12,7 +14,7 @@ class LeftDrawer extends StatelessWidget {
         children: [
           const DrawerHeader(
             decoration: BoxDecoration(
-              color: Colors.blueAccent,
+              color: Colors.blueAccent, 
             ),
             child: Column(
               children: [
@@ -38,27 +40,19 @@ class LeftDrawer extends StatelessWidget {
               ],
             ),
           ),
+
+          // Halaman Utama
           ListTile(
             leading: const Icon(Icons.home_outlined),
             title: const Text('Halaman Utama'),
             onTap: () {
-              // Navigasi ke Halaman Utama
-              Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const MyHomePage(title: 'MatchPlay'),
-                  ));
             },
           ),
+          // --- Menu Daftar Equipment ---
           ListTile(
             leading: const Icon(Icons.sports_tennis), // Icon diganti biar sesuai
             title: const Text('Daftar Equipment'),
             onTap: () {
-                // Navigasi ke Daftar Equipment
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const EquipmentPage()),
-                );
             },
           ),
         ],
