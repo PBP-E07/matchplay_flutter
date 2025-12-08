@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:matchplay_flutter/main.dart';
 import 'package:matchplay_flutter/features/dashboard/screens/field_management_screen.dart';
 import 'package:matchplay_flutter/features/equipment/screens/equipment_list.dart';
-import 'package:matchplay_flutter/main.dart'; 
 
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
@@ -13,9 +12,7 @@ class LeftDrawer extends StatelessWidget {
       child: ListView(
         children: [
           const DrawerHeader(
-            decoration: BoxDecoration(
-              color: Colors.blueAccent, 
-            ),
+            decoration: BoxDecoration(color: Colors.blueAccent),
             child: Column(
               children: [
                 Text(
@@ -46,13 +43,36 @@ class LeftDrawer extends StatelessWidget {
             leading: const Icon(Icons.home_outlined),
             title: const Text('Halaman Utama'),
             onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomePage()),
+              );
             },
           ),
-          // --- Menu Daftar Equipment ---
+
+          // Dashboard
           ListTile(
-            leading: const Icon(Icons.sports_tennis), // Icon diganti biar sesuai
+            leading: const Icon(Icons.folder_open),
+            title: const Text('Dashboard Admin'),
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FieldManagementScreen(),
+                ),
+              );
+            },
+          ),
+
+          // Daftar Equipment
+          ListTile(
+            leading: const Icon(Icons.sports_tennis),
             title: const Text('Daftar Equipment'),
             onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const EquipmentPage()),
+              );
             },
           ),
         ],
