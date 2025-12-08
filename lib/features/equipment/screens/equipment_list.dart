@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-import 'package:matchplay_flutter/features/equipment/models/equipment.dart'; // Sesuaikan nama project lu
-import 'package:matchplay_flutter/widgets/left_drawer.dart'; // Sesuaikan lokasi drawer lu
+import 'package:matchplay_flutter/features/equipment/models/equipment.dart';
+import 'package:matchplay_flutter/widgets/left_drawer.dart';
+import 'package:matchplay_flutter/features/equipment/screens/equipment_form.dart';
 
 class EquipmentPage extends StatefulWidget {
   const EquipmentPage({super.key});
@@ -33,7 +34,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
   @override
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Daftar Equipment'),
@@ -44,76 +45,112 @@ class _EquipmentPageState extends State<EquipmentPage> {
       body: FutureBuilder(
         future: fetchEquipment(request),
         builder: (context, AsyncSnapshot snapshot) {
-          if (snapshot.data == null) {
+          // 1. Handle Loading
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
-          } else {
-            if (!snapshot.hasData) {
-              return const Column(
-                children: [
-                  Text(
-                    "Belum ada equipment.",
-                    style: TextStyle(color: Color(0xff59A5D8), fontSize: 20),
-                  ),
-                  SizedBox(height: 8),
-                ],
-              );
-            } else {
-              return ListView.builder(
-                itemCount: snapshot.data!.length,
-                itemBuilder: (context, index) {
-                  final item = snapshot.data![index];
-                  // Rakit URL Gambar (Base URL Django + Path Gambar)
-                  // Ganti 127.0.0.1 dengan 10.0.2.2 kalau pake Emulator
-                  String imageUrl = 'http://127.0.0.1:8000/media/${item.fields.image}';
+          }
+          // 2. Handle Error (PENTING BIAR TAU KENAPA)
+          else if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}"));
+          }
+          // 3. Handle Data Kosong
+          else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(
+              child: Text(
+                "Belum ada equipment.",
+                style: TextStyle(color: Color(0xff59A5D8), fontSize: 20),
+              ),
+            );
+          }
+          // 4. Handle Data Ada
+          else {
+            return ListView.builder(
+              itemCount: snapshot.data!.length,
+              itemBuilder: (context, index) {
+                final item = snapshot.data![index];
 
-                  return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Tampilkan Gambar (Kalau ada)
-                          if (item.fields.image.isNotEmpty)
-                             Image.network(
-                               imageUrl, 
-                               height: 150, 
-                               width: double.infinity, 
-                               fit: BoxFit.cover,
-                               errorBuilder: (ctx, error, stackTrace) => 
-                                 const Icon(Icons.broken_image, size: 50),
-                             ),
-                          const SizedBox(height: 10),
-                          
-                          Text(
-                            item.fields.name,
-                            style: const TextStyle(
-                              fontSize: 18.0,
-                              fontWeight: FontWeight.bold,
+                // Logic Gambar: Cek dulu null atau nggak
+                String? imageUrl;
+                if (item.fields.image != null &&
+                    item.fields.image!.isNotEmpty) {
+                  imageUrl = 'http://127.0.0.1:8000/media/${item.fields.image}';
+                }
+
+                return Card(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Tampilkan Gambar cuma kalau URL-nya ada
+                        if (imageUrl != null)
+                          Image.network(
+                            imageUrl,
+                            height: 150,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (ctx, error, stackTrace) =>
+                                const Icon(
+                                  Icons.broken_image,
+                                  size: 50,
+                                  color: Colors.grey,
+                                ),
+                          )
+                        else
+                          // Placeholder kalau gak ada gambar
+                          Container(
+                            height: 100,
+                            width: double.infinity,
+                            color: Colors.grey[200],
+                            child: const Icon(
+                              Icons.sports_tennis,
+                              size: 50,
+                              color: Colors.grey,
                             ),
                           ),
-                          const SizedBox(height: 5),
-                          Text("Jumlah: ${item.fields.quantity}"),
-                          Text("Harga: Rp ${item.fields.pricePerHour}"),
-                          const SizedBox(height: 10),
-                          Text(item.fields.description),
-                        ],
-                      ),
+
+                        const SizedBox(height: 10),
+                        Text(
+                          item.fields.name,
+                          style: const TextStyle(
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text("Jumlah: ${item.fields.quantity}"),
+                        Text("Harga: Rp ${item.fields.pricePerHour}"),
+                        const SizedBox(height: 10),
+                        Text(item.fields.description),
+                      ],
                     ),
-                  );
-                },
-              );
-            }
+                  ),
+                );
+              },
+            );
           }
         },
       ),
       // Tombol Tambah (Floating Action Button)
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
+        // Bikin tombol jadi lonjong ada tulisannya (Lebih Keren & Modern)
+        label: const Text(
+          'Tambah Item',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        icon: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: Colors.blueAccent, // Sesuaikan warna tema
+        // Logic Navigasi (Biar bisa dipencet)
         onPressed: () {
-          // Nanti kita arahin ke form di sini
-          // Navigator.push(context, MaterialPageRoute(builder: (context) => const EquipmentFormPage()));
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const EquipmentFormPage()),
+          );
         },
-        child: const Icon(Icons.add),
       ),
     );
   }
