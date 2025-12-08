@@ -77,8 +77,7 @@ class _FieldFormScreenState extends State<FieldFormScreen> {
       _locationController.text = f.location;
       _imageController.text = f.image;
       _urlController.text = f.url;
-      _selectedSport =
-          f.sport; // Pastikan value di DB cocok dengan list _sportCategories
+      _selectedSport = f.sport;
 
       // Map fasilitas yang sudah dimiliki ke dalam Set ID
       for (var facility in f.facilities) {

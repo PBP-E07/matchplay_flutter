@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../fields/models/field.dart';
 import '../../fields/services/field_service.dart';
 import 'field_form_screen.dart';
+import 'package:matchplay_flutter/widgets/left_drawer.dart';
 
 class FieldManagementScreen extends StatefulWidget {
   const FieldManagementScreen({super.key});
@@ -128,6 +129,9 @@ class _FieldManagementScreenState extends State<FieldManagementScreen> {
           ),
         ],
       ),
+
+      drawer: const LeftDrawer(),
+
       // Tombol Tambah Data (+)
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openForm(), // Tanpa parameter = Create Mode
