@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:matchplay_flutter/main.dart';
-import 'package:matchplay_flutter/features/dashboard/screens/field_management_screen.dart';
+import 'package:matchplay_flutter/features/dashboard/screens/admin_dashboard_screen.dart';
 import 'package:matchplay_flutter/features/equipment/screens/equipment_list.dart';
 
 class LeftDrawer extends StatelessWidget {
@@ -58,7 +58,7 @@ class LeftDrawer extends StatelessWidget {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const FieldManagementScreen(),
+                  builder: (context) => const AdminDashboardScreen(),
                 ),
               );
             },

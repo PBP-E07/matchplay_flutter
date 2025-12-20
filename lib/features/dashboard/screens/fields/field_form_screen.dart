@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../fields/models/field.dart';
-import '../../fields/models/facility.dart';
-import '../../fields/services/field_service.dart';
+import '../../../fields/models/field.dart';
+import '../../../fields/models/facility.dart';
+import '../../../fields/services/field_service.dart';
 
 class FieldFormScreen extends StatefulWidget {
   final Field? field; // Jika null = Create, jika ada = Edit
@@ -185,7 +185,7 @@ class _FieldFormScreenState extends State<FieldFormScreen> {
 
                     // === Sport (Dropdown) ===
                     DropdownButtonFormField<String>(
-                      value: _selectedSport,
+                      initialValue: _selectedSport,
                       decoration: const InputDecoration(
                         labelText: 'Kategori Olahraga',
                         border: OutlineInputBorder(),
@@ -227,11 +227,13 @@ class _FieldFormScreenState extends State<FieldFormScreen> {
                               decimal: true,
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty)
+                              if (value == null || value.isEmpty) {
                                 return 'Wajib diisi';
+                              }
                               final n = double.tryParse(value);
-                              if (n == null || n < 0 || n > 5)
+                              if (n == null || n < 0 || n > 5) {
                                 return 'Invalid (0-5)';
+                              }
                               return null;
                             },
                           ),
