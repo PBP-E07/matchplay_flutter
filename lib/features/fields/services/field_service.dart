@@ -15,6 +15,7 @@ class FieldService {
   // 1. GET: Ambil semua fields dengan filter & pagination
   Future<FieldListResponse> fetchFields({
     int page = 1,
+    int perPage = 20,
     String search = '',
     String? category,
     int? minPrice,
@@ -23,7 +24,7 @@ class FieldService {
     // Menyusun Query Parameters
     final queryParams = <String, String>{
       'page': page.toString(),
-      'per_page': '20', // Default pagination backend
+      'per_page': perPage.toString(),
     };
 
     if (search.isNotEmpty) queryParams['search'] = search;
@@ -86,8 +87,8 @@ class FieldService {
       if (response.statusCode == 201) {
         return true;
       } else {
-        // Bisa parsing error detail dari 'errors' key di backend jika mau
-        print('Gagal create: ${response.body}');
+        // Bisa parsing error detail dari 'errors' key di backend
+        // print('Gagal create: ${response.body}');
         return false;
       }
     } catch (e) {
