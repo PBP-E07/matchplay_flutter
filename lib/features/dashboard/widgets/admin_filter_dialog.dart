@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 
-class FieldFilterDialog extends StatefulWidget {
+class AdminFilterDialog extends StatefulWidget {
   final String? currentCategory;
   final int? currentMinPrice;
   final int? currentMaxPrice;
-  final List<Map<String, String>> categories;
+  final List<Map<String, String>>? categories; // Opsional
 
-  const FieldFilterDialog({
+  const AdminFilterDialog({
     super.key,
     this.currentCategory,
     this.currentMinPrice,
     this.currentMaxPrice,
-    required this.categories,
+    this.categories,
   });
 
   @override
-  State<FieldFilterDialog> createState() => _FieldFilterDialogState();
+  State<AdminFilterDialog> createState() => _AdminFilterDialogState();
 }
 
-class _FieldFilterDialogState extends State<FieldFilterDialog> {
+class _AdminFilterDialogState extends State<AdminFilterDialog> {
   late TextEditingController _minPriceController;
   late TextEditingController _maxPriceController;
   String? _selectedCategory;
@@ -36,25 +36,9 @@ class _FieldFilterDialogState extends State<FieldFilterDialog> {
   }
 
   @override
-  void dispose() {
-    _minPriceController.dispose();
-    _maxPriceController.dispose();
-    super.dispose();
-  }
-
-  void _applyFilter() {
-    // Kembalikan data ke halaman utama dalam bentuk Map
-    Navigator.pop(context, {
-      'category': _selectedCategory,
-      'minPrice': int.tryParse(_minPriceController.text),
-      'maxPrice': int.tryParse(_maxPriceController.text),
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text("Filter Lapangan"),
+      title: const Text("Filter Data"),
       actionsAlignment: MainAxisAlignment.center,
       content: SizedBox(
         width: 400,
@@ -62,36 +46,30 @@ class _FieldFilterDialogState extends State<FieldFilterDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Kategori
-            const Text(
-              "Sport Category",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _selectedCategory,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
+            // Dropdown Kategori (Hanya muncul jika categories disediakan)
+            if (widget.categories != null) ...[
+              const Text(
+                "Category",
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              items: [
-                const DropdownMenuItem(value: null, child: Text("All")),
-                ...widget.categories.map((cat) {
-                  return DropdownMenuItem(
-                    value: cat['value'],
-                    child: Text(cat['label']!),
-                  );
-                }),
-              ],
-              onChanged: (val) => setState(() => _selectedCategory = val),
-            ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                initialValue: _selectedCategory,
+                decoration: const InputDecoration(border: OutlineInputBorder()),
+                items: [
+                  const DropdownMenuItem(value: null, child: Text("All")),
+                  ...widget.categories!.map((cat) {
+                    return DropdownMenuItem(
+                      value: cat['value'],
+                      child: Text(cat['label']!),
+                    );
+                  }),
+                ],
+                onChanged: (val) => setState(() => _selectedCategory = val),
+              ),
+              const SizedBox(height: 16),
+            ],
 
-            const SizedBox(height: 16),
-
-            // Harga
             const Text(
               "Price Range (Rp)",
               style: TextStyle(fontWeight: FontWeight.bold),
@@ -106,10 +84,6 @@ class _FieldFilterDialogState extends State<FieldFilterDialog> {
                     decoration: const InputDecoration(
                       hintText: "Min",
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
                     ),
                   ),
                 ),
@@ -121,10 +95,6 @@ class _FieldFilterDialogState extends State<FieldFilterDialog> {
                     decoration: const InputDecoration(
                       hintText: "Max",
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
                     ),
                   ),
                 ),
@@ -136,12 +106,18 @@ class _FieldFilterDialogState extends State<FieldFilterDialog> {
       actions: [
         ElevatedButton(
           style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-          onPressed: () => Navigator.pop(context), // Return null
+          onPressed: () => Navigator.pop(context),
           child: const Text("Close", style: TextStyle(color: Colors.white)),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
-          onPressed: _applyFilter,
+          onPressed: () {
+            Navigator.pop(context, {
+              'category': _selectedCategory,
+              'minPrice': int.tryParse(_minPriceController.text),
+              'maxPrice': int.tryParse(_maxPriceController.text),
+            });
+          },
           child: const Text(
             "Apply Filters",
             style: TextStyle(color: Colors.white),

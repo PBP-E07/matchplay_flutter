@@ -5,12 +5,18 @@ class DashboardStats extends StatelessWidget {
   final int totalData;
   final double avgPrice;
   final double avgRating;
+  final String totalLabel;
+  final String avgPriceLabel;
+  final String avgRatingLabel;
 
   const DashboardStats({
     super.key,
     required this.totalData,
     required this.avgPrice,
     required this.avgRating,
+    this.totalLabel = "Total Data",
+    this.avgPriceLabel = "Average Price",
+    this.avgRatingLabel = "Average Rating",
   });
 
   @override
@@ -46,21 +52,21 @@ class DashboardStats extends StatelessWidget {
           runSpacing: gap, // Spasi Vertikal (saat turun baris)
           children: [
             _buildStatCard(
-              title: "Total Fields",
+              title: totalLabel,
               value: totalData.toString(),
               valueColor: Colors.purple,
               icon: Icons.stadium,
               width: cardWidth,
             ),
             _buildStatCard(
-              title: "Average Price",
+              title: avgPriceLabel,
               value: currencyFormat.format(avgPrice),
               valueColor: Colors.green,
               icon: Icons.attach_money,
               width: cardWidth,
             ),
             _buildStatCard(
-              title: "Average Rating",
+              title: avgRatingLabel,
               value: avgRating.toString(),
               valueColor: Colors.amber,
               icon: Icons.star,
