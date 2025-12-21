@@ -1,46 +1,85 @@
-name: Flutter CI
+name: Flutter CI/CD
 
-# Trigger workflow ini setiap ada push ke branch master
 on:
   push:
     branches: [ main, master ]
+    tags:
+      - 'v*' # Trigger release hanya jika push tag diawali 'v', contoh: v1.0.0
   pull_request:
     branches: [ main, master ]
 
 jobs:
-  build:
+  # Job 1: Quality Check (Selalu jalan)
+  analyze_and_test:
+    name: Analyze & Test
     runs-on: ubuntu-latest
-
     steps:
-      # 1. Ambil kode dari repository
       - uses: actions/checkout@v3
-
-      # 2. Setup Java (Dibutuhkan untuk build Android)
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '17'
-
-      # 3. Setup Flutter
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          # Opsional: definisikan versi flutter spesifik jika perlu
-          # flutter-version: '3.19.0' 
-
-      # 4. Install dependencies
+      
       - name: Install Dependencies
         run: flutter pub get
 
-      # 5. Cek Kualitas Kode (Linting)
-      # Ini akan error jika ada kode yang tidak sesuai standar (seperti warning/error di IDE)
       - name: Analyze Code
         run: flutter analyze
 
-      # 6. Jalankan Unit Test (Jika ada)
       - name: Run Tests
         run: flutter test
 
-      # 7. Coba Build APK (Debug) untuk memastikan tidak ada error build
-      - name: Build APK (Debug)
-        run: flutter build apk --debug
+  # Job 2: Build & Release (Hanya jalan jika ada Tag)
+  build_and_release:
+    name: Build Release APK
+    needs: analyze_and_test # Harus lolos job 1 dulu
+    if: startsWith(github.ref, 'refs/tags/v') # Cek apakah ini Tag
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      # Langkah Penting: Decode Keystore dari Secrets menjadi File fisik
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release-keystore.jks
+
+      # Langkah Penting: Ubah URL config.dart ke Production (Sama seperti Bitrise)
+      # Pastikan Anda punya secret API_URL atau hardcode URL di sini
+      - name: Update Config to Production
+        run: |
+          echo "class AppConfig { static const String baseUrl = 'https://valerian-hizkia-matchplay.pbp.cs.ui.ac.id'; }" > lib/config.dart
+
+      # Build APK dengan Environment Variables untuk Signing
+      - name: Build APK Release
+        run: flutter build apk --release
+        env:
+          CI: true
+          ANDROID_KEYSTORE_PATH: release-keystore.jks
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+
+      # Upload APK ke GitHub Releases
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: build/app/outputs/flutter-apk/app-release.apk
+          # Opsional: Custom name untuk file
+          # name: Matchplay-v${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Token bawaan GitHub (gratis)
