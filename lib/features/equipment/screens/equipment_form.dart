@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:matchplay_flutter/features/equipment/screens/equipment_list.dart';
-import 'package:matchplay_flutter/widgets/left_drawer.dart';
 
 class EquipmentFormPage extends StatefulWidget {
   const EquipmentFormPage({super.key});
@@ -159,7 +158,7 @@ class _EquipmentFormPageState extends State<EquipmentFormPage> {
                         // Kirim ke Django (Ganti URL sesuai endpoint lu)
                         // PENTING: Ganti 10.0.2.2 kalau pake Emulator
                         final response = await request.postJson(
-                          "http://10.0.2.2:8000/equipment/create-flutter/",
+                          "http://127.0.0.1:8000/equipment/create-flutter/",
                           jsonEncode(<String, String>{
                             'name': _name,
                             'quantity': _quantity.toString(),

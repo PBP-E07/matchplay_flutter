@@ -41,7 +41,7 @@ class LeftDrawer extends StatelessWidget {
             ),
           ),
 
-          // 1. Halaman Utama
+          // Halaman Utama
           ListTile(
             leading: const Icon(Icons.home_outlined),
             title: const Text('Halaman Utama'),
@@ -53,9 +53,9 @@ class LeftDrawer extends StatelessWidget {
             },
           ),
 
-          // Matchmake (Fitur Teman - DIKEMBALIKAN)
+          // Match
           ListTile(
-            leading: const Icon(Icons.create), // Ikon sesuai Navbar
+            leading: const Icon(Icons.create), 
             title: const Text('Matchmake'),
             onTap: () {
               Navigator.pushReplacement(
@@ -65,7 +65,7 @@ class LeftDrawer extends StatelessWidget {
             },
           ),
 
-          // Daftar Turnamen (Fitur Baru)
+          // Daftar Turnamen 
           ListTile(
             leading: const Icon(Icons.emoji_events),
             title: const Text('Daftar Turnamen'),
@@ -91,7 +91,7 @@ class LeftDrawer extends StatelessWidget {
             },
           ),
 
-          // Equipment
+          // 5. Equipment
           ListTile(
             leading: const Icon(Icons.sports_tennis),
             title: const Text('Daftar Equipment'),
@@ -103,7 +103,7 @@ class LeftDrawer extends StatelessWidget {
             },
           ),
 
-          //Blog
+          // Blog
           ListTile(
             leading: const Icon(Icons.article),
             title: const Text('Blog'),

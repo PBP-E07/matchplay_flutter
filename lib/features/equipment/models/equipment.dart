@@ -1,6 +1,4 @@
-// To parse this JSON data, do
-//
-//     final equipment = equipmentFromJson(jsonString);
+// features/equipment/models/equipment.dart
 
 import 'dart:convert';
 
@@ -35,16 +33,16 @@ class Equipment {
 class Fields {
     String name;
     int quantity;
-    String pricePerHour;
+    String pricePerHour; // Django serialize Decimal jadi String, ini udah bener
     String description;
-    String image;
+    String? image; // <--- UBAH JADI NULLABLE (Ada tanda tanyanya)
 
     Fields({
         required this.name,
         required this.quantity,
         required this.pricePerHour,
         required this.description,
-        required this.image,
+        this.image, // Hapus 'required', ganti jadi optional
     });
 
     factory Fields.fromJson(Map<String, dynamic> json) => Fields(
@@ -52,7 +50,7 @@ class Fields {
         quantity: json["quantity"],
         pricePerHour: json["price_per_hour"],
         description: json["description"],
-        image: json["image"],
+        image: json["image"], 
     );
 
     Map<String, dynamic> toJson() => {

@@ -21,20 +21,21 @@ class CustomBottomNavBar extends StatelessWidget {
 
     Widget page;
     if (isAdmin) {
+      // Admin navigation (6 Items)
       switch (index) {
         case 0: page = const HomePage(); break;
-        case 1: page = const CreateMatchForm(); break; 
-        case 2: page = const TournamentListPage(); break; 
+        case 1: page = const CreateMatchForm(); break; // Fitur Match
+        case 2: page = const TournamentListPage(); break; // Fitur Tournament
         case 3: page = const AdminDashboardScreen(); break;
         case 4: page = const EquipmentPage(); break;
         case 5: page = const BlogEntryListPage(); break;
         default: return;
       }
     } else {
-      // Non-admin navigation 
+      // Non-admin navigation (4 Items)
       switch (index) {
         case 0: page = const HomePage(); break;
-        case 1: page = const TournamentListPage(); break; 
+        case 1: page = const TournamentListPage(); break; // Fitur Tournament
         case 2: page = const EquipmentPage(); break;
         case 3: page = const BlogEntryListPage(); break;
         default: return;
