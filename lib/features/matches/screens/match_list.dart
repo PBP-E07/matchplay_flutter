@@ -13,11 +13,35 @@ class MatchListScreen extends StatefulWidget {
 }
 
 class _MatchListScreenState extends State<MatchListScreen> {
+  Future<void> joinMatch(CookieRequest request, int matchId) async {
+    final response = await request.post(
+      '${AppConfig.baseUrl}/api/matches/$matchId/join/',
+      {},
+    );
+
+    if (mounted) {
+      if (response['status'] == 'success') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Joined match successfully!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+        setState(() {});
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? "Failed to join"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Future<List<MatchModel>> fetchMatches(CookieRequest request) async {
-    // 1. Fetch data from Django API
     final response = await request.get('${AppConfig.baseUrl}/api/matches/');
 
-    // 2. Parse the response
     List<MatchModel> listMatches = [];
     if (response['status'] == 'success') {
       for (var d in response['data']) {
@@ -34,18 +58,14 @@ class _MatchListScreenState extends State<MatchListScreen> {
     final request = context.watch<CookieRequest>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Available Matches'),
-      ),
-      // Add a floating button to open your "Create Match" form
+      appBar: AppBar(title: const Text('Available Matches')),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const CreateMatchForm()),
           );
-          // Refresh the list after returning from the form
-          setState(() {}); 
+          setState(() {});
         },
         child: const Icon(Icons.add),
       ),
@@ -57,14 +77,16 @@ class _MatchListScreenState extends State<MatchListScreen> {
           } else if (snapshot.hasError) {
             return Center(child: Text("Error: ${snapshot.error}"));
           } else if (!snapshot.hasData || snapshot.data.isEmpty) {
-            return const Center(child: Text("No matches available. Create one!"));
+            return const Center(
+              child: Text("No matches available. Create one!"),
+            );
           } else {
             return ListView.builder(
               padding: const EdgeInsets.all(16.0),
               itemCount: snapshot.data!.length,
               itemBuilder: (_, index) {
                 MatchModel match = snapshot.data![index];
-                return _buildMatchCard(match);
+                return _buildMatchCard(match, request);
               },
             );
           }
@@ -73,7 +95,7 @@ class _MatchListScreenState extends State<MatchListScreen> {
     );
   }
 
-  Widget _buildMatchCard(MatchModel match) {
+  Widget _buildMatchCard(MatchModel match, CookieRequest request) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16.0),
       elevation: 4,
@@ -86,15 +108,21 @@ class _MatchListScreenState extends State<MatchListScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  match.fieldName,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Text(
+                    match.fieldName,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.blue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -110,30 +138,69 @@ class _MatchListScreenState extends State<MatchListScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            Text("Date: ${match.date}", style: TextStyle(color: Colors.grey[600])),
+
+            Text(
+              "Date: ${match.date}",
+              style: TextStyle(color: Colors.grey[600]),
+            ),
             const SizedBox(height: 12),
+
             LinearProgressIndicator(
               value: match.progress,
               backgroundColor: Colors.grey[200],
-              color: Colors.green,
+              color: const Color(0xFF00C853),
               minHeight: 8,
               borderRadius: BorderRadius.circular(4),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16), 
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "${match.currentPlayers}/${match.maxPlayers} Players",
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "${match.currentPlayers}/${match.maxPlayers} Players",
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Rp ${match.price}",
+                      style: const TextStyle(
+                        color: Color(0xFF00C853),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  "Rp ${match.price}",
-                  style: const TextStyle(
-                    color: Colors.green,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+
+                ElevatedButton(
+                  onPressed: () {
+                    if (match.spotsLeft <= 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Match is full!")),
+                      );
+                      return;
+                    }
+                    joinMatch(request, match.id);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: match.spotsLeft <= 0
+                        ? Colors.grey
+                        : const Color(0xFF00C853),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                   ),
+                  child: Text(match.spotsLeft <= 0 ? "Full" : "Join"),
                 ),
               ],
             ),
