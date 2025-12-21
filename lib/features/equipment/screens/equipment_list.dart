@@ -365,9 +365,9 @@ class _EquipmentPageState extends State<EquipmentPage> {
                         ? null
                         : () {
                             // Kirim data ke Django lo (/equipment/book/)
-                            print(
-                              "Booking: ${item.fields.name}, Qty: $quantity, Date: $selectedDate",
-                            );
+                            // print(
+                            //   "Booking: ${item.fields.name}, Qty: $quantity, Date: $selectedDate",
+                            // );
                             Navigator.pop(context);
                           },
                     child: const Text(

@@ -22,20 +22,38 @@ class CustomBottomNavBar extends StatelessWidget {
     if (isAdmin) {
       // Admin navigation
       switch (index) {
-        case 0: page = const HomePage(); break;
-        case 1: page = const CreateMatchForm(); break;
-        case 2: page = const AdminDashboardScreen(); break;
-        case 3: page = const EquipmentPage(); break;
-        case 4: page = const BlogEntryListPage(); break;
-        default: return;
+        case 0:
+          page = const HomePage();
+          break;
+        case 1:
+          page = const CreateMatchForm();
+          break;
+        case 2:
+          page = const AdminDashboardScreen();
+          break;
+        case 3:
+          page = const EquipmentPage();
+          break;
+        case 4:
+          page = const BlogEntryListPage();
+          break;
+        default:
+          return;
       }
     } else {
       // Non-admin navigation
       switch (index) {
-        case 0: page = const HomePage(); break;
-        case 1: page = const EquipmentPage(); break;
-        case 2: page = const BlogEntryListPage(); break;
-        default: return;
+        case 0:
+          page = const HomePage();
+          break;
+        case 1:
+          page = const EquipmentPage();
+          break;
+        case 2:
+          page = const BlogEntryListPage();
+          break;
+        default:
+          return;
       }
     }
     Navigator.pushReplacement(
@@ -52,13 +70,19 @@ class CustomBottomNavBar extends StatelessWidget {
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
         BottomNavigationBarItem(icon: Icon(Icons.create), label: 'Matchmake'),
         BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Admin'),
-        BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Equipment'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.shopping_cart),
+          label: 'Equipment',
+        ),
         BottomNavigationBarItem(icon: Icon(Icons.article), label: 'Blog'),
       ];
     } else {
       items = const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Equipment'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.shopping_cart),
+          label: 'Equipment',
+        ),
         BottomNavigationBarItem(icon: Icon(Icons.article), label: 'Blog'),
       ];
     }
