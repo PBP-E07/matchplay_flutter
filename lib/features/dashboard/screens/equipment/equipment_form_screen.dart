@@ -1,5 +1,7 @@
 // Package Umum
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
 
 // Equipment
 import '../../../equipment/models/equipment.dart';
@@ -53,8 +55,9 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
+
+    final request = context.read<CookieRequest>();
 
     // Persiapkan Data
     final data = {
@@ -68,10 +71,14 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
     try {
       if (widget.equipment == null) {
         // Create Mode
-        success = await _service.createEquipment(data);
+        success = await _service.createEquipment(request, data);
       } else {
         // Edit Mode
-        success = await _service.editEquipment(widget.equipment!.pk, data);
+        success = await _service.editEquipment(
+          request,
+          widget.equipment!.pk,
+          data,
+        );
       }
 
       if (!mounted) return;

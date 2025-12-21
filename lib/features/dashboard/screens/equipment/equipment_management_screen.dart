@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
 
 // Equipment
 import '../../../equipment/models/equipment.dart';
@@ -53,8 +55,11 @@ class _EquipmentManagementScreenState extends State<EquipmentManagementScreen> {
 
   Future<void> _fetchData({int page = 1}) async {
     setState(() => _isLoading = true);
+
+    final request = context.read<CookieRequest>();
     try {
       final result = await _service.fetchEquipments(
+        request,
         page: page,
         perPage: _perPage,
         minPrice: _filterMinPrice,
@@ -132,7 +137,8 @@ class _EquipmentManagementScreenState extends State<EquipmentManagementScreen> {
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
               Navigator.pop(context);
-              bool success = await _service.deleteEquipment(item.pk);
+              final request = context.read<CookieRequest>();
+              bool success = await _service.deleteEquipment(request, item.pk);
               if (mounted) {
                 if (success) {
                   ScaffoldMessenger.of(context).showSnackBar(

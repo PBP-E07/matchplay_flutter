@@ -1,152 +1,128 @@
-// Package Umum
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-
-// Models
+import 'package:matchplay_flutter/config.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
 import '../models/equipment.dart';
 
 class EquipmentService {
-  // Sesuaikan URL
-  // Web/Windows: 127.0.0.1
-  // Emulator Android: 10.0.2.2
-  static const String baseUrl = 'http://127.0.0.1:8000';
-
-  static const String _endpointJson = '/equipment/json/';
+  static const String baseUrl = AppConfig.baseUrl;
   static const String _endpoint = '/equipment/';
 
-  // Fetch Data dengan Client-side Pagination
-  Future<Map<String, dynamic>> fetchEquipments({
+  // Fetch Data (GET)
+  Future<Map<String, dynamic>> fetchEquipments(
+    CookieRequest request, {
     int page = 1,
     int perPage = 20,
     int? minPrice,
     int? maxPrice,
   }) async {
-    final uri = Uri.parse('$baseUrl$_endpointJson');
+    final uri = '$baseUrl${_endpoint}json/';
 
     try {
-      final response = await http.get(uri);
-      if (response.statusCode == 200) {
-        // 1. Parse semua data dari backend
-        List<Equipment> allData = equipmentFromJson(response.body);
+      // Note: request.get mengembalikan dynamic (biasanya List atau Map yang sudah di-decode)
+      // Namun endpoint 'show_json' Django mengembalikan List of Objects langsung.
+      // Kita perlu handle response-nya.
 
-        // 2. Client-side filtering (harga)
-        if (minPrice != null) {
-          allData = allData
-              .where((e) => double.parse(e.fields.pricePerHour) >= minPrice)
-              .toList();
-        }
-        if (maxPrice != null) {
-          allData = allData
-              .where((e) => double.parse(e.fields.pricePerHour) <= maxPrice)
-              .toList();
-        }
+      final response = await request.get(uri);
 
-        // 3. Hitung statistik (untuk cards)
-        double totalPrice = 0;
-        int totalQty = 0;
-        for (var e in allData) {
-          totalPrice += double.parse(e.fields.pricePerHour);
-          totalQty += e.fields.quantity;
-        }
-        double avgPrice = allData.isNotEmpty ? totalPrice / allData.length : 0;
-
-        // 4. Client-side pagination logic
-        final totalData = allData.length;
-        final totalPages = (totalData / perPage).ceil();
-
-        // Ambil potongan data (slice) sesuai halaman
-        final startIndex = (page - 1) * perPage;
-        final endIndex = (startIndex + perPage < totalData)
-            ? startIndex + perPage
-            : totalData;
-
-        List<Equipment> paginatedData = [];
-        if (startIndex < totalData) {
-          paginatedData = allData.sublist(startIndex, endIndex);
-        }
-
-        // Return format yang mirip dengan FieldService agar UI mudah
-        return {
-          "data": paginatedData,
-          "meta": {
-            "total_data": totalData,
-            "total_pages": totalPages == 0 ? 1 : totalPages,
-            "current_page": page,
-            "avg_price": avgPrice,
-            "total_qty": totalQty,
-          },
-        };
-      } else {
-        throw Exception('Server Error: ${response.statusCode}');
+      // Karena show_json mengembalikan List, kita olah manual
+      List<Equipment> allData = [];
+      if (response != null) {
+        // request.get otomatis decode JSON. Jika response adalah List:
+        allData = List<Equipment>.from(
+          response.map((x) => Equipment.fromJson(x)),
+        );
       }
+
+      // ... LOGIKA FILTERING CLIENT-SIDE (Sama seperti sebelumnya) ...
+      if (minPrice != null) {
+        allData = allData
+            .where((e) => double.parse(e.fields.pricePerHour) >= minPrice)
+            .toList();
+      }
+      if (maxPrice != null) {
+        allData = allData
+            .where((e) => double.parse(e.fields.pricePerHour) <= maxPrice)
+            .toList();
+      }
+
+      // Hitung Stats
+      double totalPrice = 0;
+      int totalQty = 0;
+      for (var e in allData) {
+        totalPrice += double.parse(e.fields.pricePerHour);
+        totalQty += e.fields.quantity;
+      }
+      double avgPrice = allData.isNotEmpty ? totalPrice / allData.length : 0;
+
+      // Paginasi Client-side
+      final totalData = allData.length;
+      final totalPages = (totalData / perPage).ceil();
+      final startIndex = (page - 1) * perPage;
+      final endIndex = (startIndex + perPage < totalData)
+          ? startIndex + perPage
+          : totalData;
+
+      List<Equipment> paginatedData = [];
+      if (startIndex < totalData) {
+        paginatedData = allData.sublist(startIndex, endIndex);
+      }
+
+      return {
+        "data": paginatedData,
+        "meta": {
+          "total_data": totalData,
+          "total_pages": totalPages == 0 ? 1 : totalPages,
+          "current_page": page,
+          "avg_price": avgPrice,
+          "total_qty": totalQty,
+        },
+      };
     } catch (e) {
       throw Exception('Gagal koneksi: $e');
     }
   }
 
-  // Create
-  Future<bool> createEquipment(Map<String, dynamic> data) async {
-    final uri = Uri.parse(
-      '$baseUrl${_endpoint}create-flutter/',
-    ); // Endpoint JSON
-
+  // Create (POST JSON)
+  Future<bool> createEquipment(
+    CookieRequest request,
+    Map<String, dynamic> data,
+  ) async {
     try {
-      final response = await http.post(
-        uri,
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(data),
+      final response = await request.postJson(
+        '$baseUrl${_endpoint}create-flutter/',
+        jsonEncode(data),
       );
-
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        // Debugging jika error
-        // print('Gagal create: ${response.body}');
-        return false;
-      }
+      return response['status'] == 'success';
     } catch (e) {
-      rethrow;
+      return false;
     }
   }
 
   // Edit
-  Future<bool> editEquipment(int id, Map<String, dynamic> data) async {
-    final uri = Uri.parse('$baseUrl$_endpoint$id/edit/');
-
+  Future<bool> editEquipment(
+    CookieRequest request,
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
-      // Karena edit_equipment di Django pakai request.POST, kirim map biasa (bukan JSON string)
-      // Note: Pastikan data semua bertipe String saat dikirim sebagai form fields
-      final Map<String, String> formData = {
-        'name': data['name'],
-        'quantity': data['quantity'].toString(),
-        'price_per_hour': data['price_per_hour'].toString(),
-        'description': data['description'],
-      };
-
-      final response = await http.post(
-        uri,
-        // Tidak pakai header application/json karena ini Form Url Encoded
-        body: formData,
+      final response = await request.postJson(
+        '$baseUrl${_endpoint}edit-flutter/$id/',
+        jsonEncode(data),
       );
-
-      // Backend edit_equipment return JsonResponse({'status': 'success'})
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        // print('Gagal edit: ${response.body}');
-        return false;
-      }
+      return response['status'] == 'success';
     } catch (e) {
-      rethrow;
+      return false;
     }
   }
 
   // Delete
-  Future<bool> deleteEquipment(int id) async {
-    final uri = Uri.parse('$baseUrl$_endpoint$id/delete/');
+  Future<bool> deleteEquipment(CookieRequest request, int id) async {
     try {
-      final response = await http.post(uri);
-      return response.statusCode == 200; // JsonResponse({'status': 'deleted'})
+      final response = await request.postJson(
+        '$baseUrl${_endpoint}delete-flutter/$id/',
+        jsonEncode({}),
+      );
+      return response['status'] == 'success';
     } catch (e) {
       return false;
     }
