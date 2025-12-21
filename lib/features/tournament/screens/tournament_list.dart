@@ -5,8 +5,7 @@ import '../models/tournament.dart';
 import '../widgets/tournament_card.dart';
 import 'tournament_form.dart';
 import 'tournament_detail.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class TournamentListPage extends StatefulWidget {
   const TournamentListPage({super.key});
@@ -17,34 +16,36 @@ class TournamentListPage extends StatefulWidget {
 
 class _TournamentListPageState extends State<TournamentListPage> {
   Future<List<Tournament>> fetchTournaments(CookieRequest request) async {
-    print("Memulai request ke Django..."); 
+    String url = kIsWeb 
+        ? 'http://localhost:8000/tournament/json/' 
+        : 'http://10.0.2.2:8000/tournament/json/';
+
+    print("Requesting to: $url");
 
     try {
-      final response = await http.get(
-        Uri.parse('http://localhost:8000/tournament/json/'),
-        headers: {"Content-Type": "application/json"},
-      );
-
-      print("Status Code: ${response.statusCode}");
-
-      if (response.statusCode == 200) {
-        List<dynamic> data = json.decode(response.body);
-        print("Data berhasil di-decode: ${data.length} item ditemukan");
-
-        List<Tournament> listTournament = [];
-        for (var d in data) {
-          if (d != null) {
-            listTournament.add(Tournament.fromJson(d));
+      final response = await request.get(url);
+      List<Tournament> listTournament = [];
+      
+      for (var d in response) {
+        if (d != null) {
+          try {
+            if (d is Map && d.containsKey('fields')) {
+              var fields = d['fields'];
+              fields['id'] = d['pk'];
+              listTournament.add(Tournament.fromJson(fields));
+            } else {
+              listTournament.add(Tournament.fromJson(d));
+            }
+          } catch (e) {
+            print("Gagal parsing item: $e");
           }
         }
-        return listTournament;
-      } else {
-        print("Gagal memuat data. Server merespons: ${response.statusCode}");
-        return [];
       }
-    } 
-    catch (e) {
-      print("Error Fatal Koneksi: $e");
+      print("Berhasil load: ${listTournament.length} turnamen");
+      return listTournament;
+
+    } catch (e) {
+      print("Error Fetch: $e");
       return [];
     }
   }
@@ -52,7 +53,6 @@ class _TournamentListPageState extends State<TournamentListPage> {
   @override
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
-    print("Halaman TournamentListPage sedang dirender..."); 
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -60,7 +60,7 @@ class _TournamentListPageState extends State<TournamentListPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // GREEN HEADER
+            // HEADER
             Container(
               width: double.infinity,
               padding: const EdgeInsets.only(
@@ -99,40 +99,14 @@ class _TournamentListPageState extends State<TournamentListPage> {
                   ),
                   const SizedBox(height: 5),
                   const Text(
-                    "90 tournaments available",
+                    "All available tournaments",
                     style: TextStyle(color: Colors.white, fontSize: 14),
                   ),
                 ],
               ),
             ),
 
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  ElevatedButton(
-                    onPressed: () {}, 
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF8BC34A),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                    ),
-                    child: const Text("Public"),
-                  ),
-                  const SizedBox(width: 10),
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[300],
-                      foregroundColor: Colors.black54,
-                      elevation: 0,
-                    ),
-                    child: const Text("Private"),
-                  ),
-                ],
-              ),
-            ),
-
+            const SizedBox(height: 20),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
@@ -150,36 +124,47 @@ class _TournamentListPageState extends State<TournamentListPage> {
             FutureBuilder(
               future: fetchTournaments(request),
               builder: (context, AsyncSnapshot snapshot) {
-                if (snapshot.data == null) {
-                  return const Center(child: CircularProgressIndicator());
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                   return const Padding(
+                     padding: EdgeInsets.only(top: 50),
+                     child: Center(child: CircularProgressIndicator()),
+                   );
+                } else if (!snapshot.hasData || snapshot.data.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.only(top: 50),
+                    child: Center(child: Text("Belum ada turnamen.")),
+                  );
                 } else {
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text("Belum ada turnamen."));
-                  } 
-                  else {
-                    return ListView.builder(
-                      shrinkWrap: true, 
-                      physics:
-                          const NeverScrollableScrollPhysics(),
-                      padding: EdgeInsets.zero,
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (_, index) {
-                        return TournamentCard(
-                          tournament: snapshot.data![index],
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => TournamentDetailPage(
-                                  tournament: snapshot.data![index],
-                                ),
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: EdgeInsets.zero,
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (_, index) {
+                      return TournamentCard(
+                        tournament: snapshot.data![index],
+                        
+                        // UPDATE
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TournamentDetailPage(
+                                tournament: snapshot.data![index],
                               ),
-                            );
-                          },
-                        );
-                      },
-                    );
-                  }
+                            ),
+                          );
+
+                          if (result == true) {
+                            setState(() {
+                              print("Data berubah, refreshing list...");
+                            });
+                          }
+                        },
+                        
+                      );
+                    },
+                  );
                 }
               },
             ),
