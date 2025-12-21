@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:matchplay_flutter/config.dart'; // IMPORT THIS
 
 class CreateMatchForm extends StatefulWidget {
   const CreateMatchForm({super.key});
@@ -32,7 +33,6 @@ class _CreateMatchFormState extends State<CreateMatchForm> {
   @override
   void initState() {
     super.initState();
-    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       fetchFields();
     });
@@ -40,16 +40,14 @@ class _CreateMatchFormState extends State<CreateMatchForm> {
 
   Future<void> fetchFields() async {
     final request = context.read<CookieRequest>();
-    final response = await request.get('http://localhost:8000/api/fields/?per_page=10000');
+    final response = await request.get('${AppConfig.baseUrl}/api/fields/?per_page=10000');
     
     if (response is Map<String, dynamic> && response.containsKey('data')) {
       if (response['data'] is Map && response['data']['fields'] is List) {
          setState(() {
            _fields = response['data']['fields'];
          });
-      } 
-
-      else if (response['data'] is List) {
+      } else if (response['data'] is List) {
         setState(() {
           _fields = response['data'];
         });
@@ -66,7 +64,7 @@ class _CreateMatchFormState extends State<CreateMatchForm> {
     final dateStr = date.toIso8601String().split('T')[0];
 
     final response = await request.get(
-      'http://localhost:8000/api/matches/slots/?field_id=$fieldId&date=$dateStr',
+      '${AppConfig.baseUrl}/api/matches/slots/?field_id=$fieldId&date=$dateStr',
     );
 
     if (response['status'] == 'success') {
@@ -148,42 +146,33 @@ class _CreateMatchFormState extends State<CreateMatchForm> {
             
                 TextFormField(
                   controller: _priceController,
-                  decoration: const InputDecoration(
-                    labelText: "Price per person",
-                  ),
+                  decoration: const InputDecoration(labelText: "Price per person"),
                   keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return "Please enter price";
-                    return null;
-                  },
+                  validator: (value) => (value == null || value.isEmpty) ? "Please enter price" : null,
                 ),
                 const SizedBox(height: 16),
 
                 TextFormField(
                   controller: _maxPlayersController,
-                  decoration: const InputDecoration(
-                    labelText: "Maximum Players",
-                  ),
+                  decoration: const InputDecoration(labelText: "Maximum Players"),
                   keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return "Enter max players";
-                    return null;
-                  },
+                  validator: (value) => (value == null || value.isEmpty) ? "Enter max players" : null,
                 ),
                 const SizedBox(height: 24),
             
                 ElevatedButton(
                   onPressed: () async {
-                    if (_formKey.currentState!.validate() &&
-                        _selectedFieldId != null) {
-                      final response = await request
-                          .post("http://localhost:8000/api/matches/", {
+                    if (_formKey.currentState!.validate() && _selectedFieldId != null) {
+                      final response = await request.post(
+                          "${AppConfig.baseUrl}/api/matches/", 
+                          {
                             "field_id": _selectedFieldId.toString(),
                             "time_slot": _selectedTimeSlot,
                             "date": _selectedDate.toIso8601String().split('T')[0],
                             "price": _priceController.text,
-                            "max_players": _maxPlayersController.text, // Added this
-                          });
+                            "max_players": _maxPlayersController.text,
+                          }
+                      );
             
                       if (response['status'] == 'success') {
                         if (context.mounted) {
@@ -195,9 +184,7 @@ class _CreateMatchFormState extends State<CreateMatchForm> {
                       } else {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(response['message'] ?? "Error"),
-                            ),
+                            SnackBar(content: Text(response['message'] ?? "Error")),
                           );
                         }
                       }
