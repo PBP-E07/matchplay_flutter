@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:matchplay_flutter/features/blog/screens/blog_entry_list.dart';
 import 'package:matchplay_flutter/features/fields/models/field.dart';
 import 'package:matchplay_flutter/features/home/widgets/field_card.dart';
+import 'package:matchplay_flutter/features/matches/screens/create_match_form.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:matchplay_flutter/features/equipment/screens/equipment_list.dart';
@@ -174,6 +175,16 @@ class _HomePageState extends State<HomePage> {
                 MaterialPageRoute(builder: (context) => HomePage()),
               );
             }),
+
+            if (isAdmin)
+              _buildBottomNavItem(Icons.create, "Matchmake", () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CreateMatchForm(),
+                  ),
+                );
+              }),
 
             if (isAdmin)
               _buildBottomNavItem(Icons.dashboard, "Admin", () {
