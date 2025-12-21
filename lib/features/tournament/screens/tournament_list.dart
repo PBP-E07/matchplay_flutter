@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:matchplay_flutter/config.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import '../models/tournament.dart';
 import '../widgets/tournament_card.dart';
 import 'tournament_form.dart';
 import 'tournament_detail.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 class TournamentListPage extends StatefulWidget {
   const TournamentListPage({super.key});
@@ -16,9 +16,7 @@ class TournamentListPage extends StatefulWidget {
 
 class _TournamentListPageState extends State<TournamentListPage> {
   Future<List<Tournament>> fetchTournaments(CookieRequest request) async {
-    String url = kIsWeb
-        ? 'http://localhost:8000/tournament/json/'
-        : 'http://10.0.2.2:8000/tournament/json/';
+    String url = '${AppConfig.baseUrl}/tournament/json/';
 
     // print("Requesting to: $url");
 

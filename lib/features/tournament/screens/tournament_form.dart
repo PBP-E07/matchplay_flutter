@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart'; 
+import 'package:matchplay_flutter/config.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'tournament_list.dart';
@@ -22,13 +22,13 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
   String _description = "";
   String _prizePool = "";
   String _bannerImage = "";
-  
+
   String _startDate = "";
-  String _endDate = ""; 
-  
+  String _endDate = "";
+
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
-  
+
   bool _isLoading = false;
 
   @override
@@ -56,10 +56,12 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              
               _buildLabel("Nama Turnamen"),
               TextFormField(
-                decoration: _inputDecoration("Contoh: Piala Kemerdekaan", Icons.emoji_events),
+                decoration: _inputDecoration(
+                  "Contoh: Piala Kemerdekaan",
+                  Icons.emoji_events,
+                ),
                 onChanged: (val) => _name = val,
                 validator: (val) => val!.isEmpty ? "Nama wajib diisi" : null,
               ),
@@ -67,15 +69,22 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
 
               _buildLabel("Jenis Olahraga"),
               TextFormField(
-                decoration: _inputDecoration("Contoh: Futsal, Basket", Icons.sports_soccer),
+                decoration: _inputDecoration(
+                  "Contoh: Futsal, Basket",
+                  Icons.sports_soccer,
+                ),
                 onChanged: (val) => _sportType = val,
-                validator: (val) => val!.isEmpty ? "Jenis olahraga wajib diisi" : null,
+                validator: (val) =>
+                    val!.isEmpty ? "Jenis olahraga wajib diisi" : null,
               ),
               const SizedBox(height: 16),
 
               _buildLabel("Lokasi"),
               TextFormField(
-                decoration: _inputDecoration("Contoh: GOR Soemantri", Icons.location_on),
+                decoration: _inputDecoration(
+                  "Contoh: GOR Soemantri",
+                  Icons.location_on,
+                ),
                 onChanged: (val) => _location = val,
                 validator: (val) => val!.isEmpty ? "Lokasi wajib diisi" : null,
               ),
@@ -84,40 +93,64 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
               _buildLabel("Tanggal Mulai"),
               TextFormField(
                 controller: _startDateController,
-                decoration: _inputDecoration("Pilih Tanggal Mulai", Icons.calendar_today),
+                decoration: _inputDecoration(
+                  "Pilih Tanggal Mulai",
+                  Icons.calendar_today,
+                ),
                 readOnly: true,
-                onTap: () => _pickDate(context, _startDateController, (val) => _startDate = val),
-                validator: (val) => val!.isEmpty ? "Tanggal mulai wajib diisi" : null,
+                onTap: () => _pickDate(
+                  context,
+                  _startDateController,
+                  (val) => _startDate = val,
+                ),
+                validator: (val) =>
+                    val!.isEmpty ? "Tanggal mulai wajib diisi" : null,
               ),
               const SizedBox(height: 16),
 
               _buildLabel("Tanggal Selesai"),
               TextFormField(
                 controller: _endDateController,
-                decoration: _inputDecoration("Pilih Tanggal Selesai", Icons.event_available),
+                decoration: _inputDecoration(
+                  "Pilih Tanggal Selesai",
+                  Icons.event_available,
+                ),
                 readOnly: true,
-                onTap: () => _pickDate(context, _endDateController, (val) => _endDate = val),
+                onTap: () => _pickDate(
+                  context,
+                  _endDateController,
+                  (val) => _endDate = val,
+                ),
               ),
               const SizedBox(height: 16),
 
               _buildLabel("Hadiah (Prize Pool)"),
               TextFormField(
-                decoration: _inputDecoration("Contoh: Rp 10.000.000", Icons.monetization_on_outlined),
+                decoration: _inputDecoration(
+                  "Contoh: Rp 10.000.000",
+                  Icons.monetization_on_outlined,
+                ),
                 onChanged: (val) => _prizePool = val,
               ),
               const SizedBox(height: 16),
 
               _buildLabel("Deskripsi"),
               TextFormField(
-                decoration: _inputDecoration("Jelaskan detail turnamen...", Icons.description_outlined),
-                maxLines: 3, 
+                decoration: _inputDecoration(
+                  "Jelaskan detail turnamen...",
+                  Icons.description_outlined,
+                ),
+                maxLines: 3,
                 onChanged: (val) => _description = val,
               ),
               const SizedBox(height: 16),
 
               _buildLabel("Banner Image URL"),
               TextFormField(
-                decoration: _inputDecoration("https://example.com/banner.jpg", Icons.image_outlined),
+                decoration: _inputDecoration(
+                  "https://example.com/banner.jpg",
+                  Icons.image_outlined,
+                ),
                 onChanged: (val) => _bannerImage = val,
               ),
 
@@ -131,13 +164,28 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: _themeColor,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                     elevation: 0,
                   ),
                   onPressed: _isLoading ? null : () => _submitForm(request),
-                  child: _isLoading 
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Text("SIMPAN TURNAMEN", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          "SIMPAN TURNAMEN",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -151,9 +199,9 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
-  
-    String baseUrl = kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
-    
+
+    String baseUrl = AppConfig.baseUrl;
+
     try {
       final response = await request.postJson(
         "$baseUrl/tournament/api/tournament/create/",
@@ -162,7 +210,7 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
           'sport_type': _sportType,
           'location': _location,
           'start_date': _startDate,
-          'end_date': _endDate.isNotEmpty ? _endDate : null, 
+          'end_date': _endDate.isNotEmpty ? _endDate : null,
           'description': _description,
           'prize_pool': _prizePool,
           'banner_image': _bannerImage.isNotEmpty ? _bannerImage : null,
@@ -172,31 +220,42 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
       if (mounted) {
         if (response['status'] == 'success') {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Turnamen berhasil dibuat!"), backgroundColor: Colors.green),
+            const SnackBar(
+              content: Text("Turnamen berhasil dibuat!"),
+              backgroundColor: Colors.green,
+            ),
           );
-          
+
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const TournamentListPage()),
             (route) => false,
           );
-        } 
-        else {
+        } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(response['message'] ?? "Gagal menyimpan."), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(response['message'] ?? "Gagal menyimpan."),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
     } catch (e) {
-       if (mounted) {
-         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
-       }
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error: $e")));
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _pickDate(BuildContext context, TextEditingController controller, Function(String) setDateState) async {
+  Future<void> _pickDate(
+    BuildContext context,
+    TextEditingController controller,
+    Function(String) setDateState,
+  ) async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -205,7 +264,10 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(primary: _themeColor, onPrimary: Colors.white),
+            colorScheme: ColorScheme.light(
+              primary: _themeColor,
+              onPrimary: Colors.white,
+            ),
           ),
           child: child!,
         );
@@ -213,10 +275,11 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
     );
 
     if (pickedDate != null) {
-      String formattedDate = "${pickedDate.year}-${pickedDate.month.toString().padLeft(2,'0')}-${pickedDate.day.toString().padLeft(2,'0')}";
+      String formattedDate =
+          "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
       setState(() {
-        controller.text = formattedDate; 
-        setDateState(formattedDate);    
+        controller.text = formattedDate;
+        setDateState(formattedDate);
       });
     }
   }
@@ -224,7 +287,10 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
   Widget _buildLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6.0),
-      child: Text(text, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+      child: Text(
+        text,
+        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+      ),
     );
   }
 

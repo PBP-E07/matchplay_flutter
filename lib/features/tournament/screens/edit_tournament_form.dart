@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
+import 'package:matchplay_flutter/config.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import '../models/tournament.dart';
@@ -149,7 +149,7 @@ class _EditTournamentFormPageState extends State<EditTournamentFormPage> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
-    String baseUrl = kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
+    String baseUrl = AppConfig.baseUrl;
 
     try {
       final response = await request.postJson(

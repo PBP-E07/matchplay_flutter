@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'package:matchplay_flutter/config.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import '../models/tournament.dart';
@@ -17,8 +17,7 @@ class MatchListPage extends StatefulWidget {
 }
 
 class _MatchListPageState extends State<MatchListPage> {
-  String get baseUrl =>
-      kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
+  String baseUrl = AppConfig.baseUrl;
 
   Future<List<TournamentMatch>> fetchMatches(CookieRequest request) async {
     final url = '$baseUrl/tournament/api/${widget.tournament.id}/matches/';
