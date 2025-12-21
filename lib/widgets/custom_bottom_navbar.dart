@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
+  final bool isAdmin; // Tambahkan ini
 
   const CustomBottomNavBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
+    this.isAdmin = false,
   });
 
   @override
@@ -16,23 +18,32 @@ class CustomBottomNavBar extends StatelessWidget {
       currentIndex: currentIndex,
       onTap: (index) => onTap(index),
       selectedItemColor: const Color(0xFF00BFA6),
-      unselectedItemColor: Colors.black87,
+      unselectedItemColor: Colors.black54,
       backgroundColor: Colors.white,
-      type: BottomNavigationBarType.fixed, // Ensures labels are always visible
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Home',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.shopping_cart),
-          label: 'Equipment',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.article),
-          label: 'Blog',
-        ),
-      ],
+      // FIX: Paksa type fixed agar label muncul & ikon tidak numpuk
+      type: BottomNavigationBarType.fixed,
+      showSelectedLabels: false,
+      showUnselectedLabels: false,
+      items: isAdmin ? _adminItems : _userItems,
     );
   }
+
+  // Menu Admin (5 Ikon) sesuai screenshot lo
+  List<BottomNavigationBarItem> get _adminItems => const [
+    BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+    BottomNavigationBarItem(icon: Icon(Icons.edit_note), label: 'Add'),
+    BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: 'List'),
+    BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Booking'),
+    BottomNavigationBarItem(icon: Icon(Icons.article), label: 'Blog'),
+  ];
+
+  // Menu User Biasa (3 Ikon)
+  List<BottomNavigationBarItem> get _userItems => const [
+    BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.shopping_cart),
+      label: 'Equipment',
+    ),
+    BottomNavigationBarItem(icon: Icon(Icons.article), label: 'Blog'),
+  ];
 }

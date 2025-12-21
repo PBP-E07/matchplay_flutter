@@ -3,7 +3,8 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:matchplay_flutter/features/equipment/models/equipment.dart';
 import 'package:matchplay_flutter/widgets/custom_bottom_navbar.dart';
-import 'dart:async'; // Buat Timer hitung mundur
+import 'package:matchplay_flutter/features/equipment/screens/equipment_form.dart';
+import 'dart:async';
 
 class EquipmentPage extends StatefulWidget {
   const EquipmentPage({super.key});
@@ -13,13 +14,20 @@ class EquipmentPage extends StatefulWidget {
 }
 
 class _EquipmentPageState extends State<EquipmentPage> {
-  final String baseUrl =
-      'http://localhost:8000'; // Pake 10.0.2.2 kalau emulator
+  // PENTING: Gunakan localhost agar session cookie sinkron di browser
+  final String baseUrl = 'http://localhost:8000';
   String _searchQuery = "";
   String _selectedCategory = "All";
-  int _currentIndex = 1;
+  int _currentIndex = 1; // Default index untuk halaman Equipment
 
-  // Slot jam per 1 jam sesuai request lo
+  final List<String> _categories = [
+    "All",
+    "Padel",
+    "Golf",
+    "Volley",
+    "Bola",
+    "Basket",
+  ];
   final List<String> _timeSlots = [
     "06:00-07:00",
     "07:00-08:00",
@@ -33,9 +41,6 @@ class _EquipmentPageState extends State<EquipmentPage> {
     "16:00-17:00",
     "17:00-18:00",
     "18:00-19:00",
-    "19:00-20:00",
-    "20:00-21:00",
-    "21:00-22:00",
   ];
 
   Future<List<Equipment>> fetchEquipment(CookieRequest request) async {
@@ -45,21 +50,43 @@ class _EquipmentPageState extends State<EquipmentPage> {
       if (d != null) {
         Equipment eq = Equipment.fromJson(d);
         String name = eq.fields.name.toLowerCase();
-        if (name.contains(_searchQuery.toLowerCase())) {
-          if (_selectedCategory == "All" ||
-              name.contains(_selectedCategory.toLowerCase())) {
-            listEquipment.add(eq);
-          }
+        // Filter search dan kategori
+        if (name.contains(_searchQuery.toLowerCase()) &&
+            (_selectedCategory == "All" ||
+                name.contains(_selectedCategory.toLowerCase()))) {
+          listEquipment.add(eq);
         }
       }
     }
     return listEquipment;
   }
 
+  // --- FUNGSI HAPUS ALAT (ADMIN) ---
+  Future<void> _deleteEquipment(CookieRequest request, int pk) async {
+    final response = await request.post(
+      '$baseUrl/equipment/delete-flutter/$pk/',
+      {},
+    );
+    if (response['status'] == 'success') {
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Alat berhasil dihapus!"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
-    final bool isAdmin = request.jsonData['is_admin'] ?? false;
+    // Cek role admin dari session Django
+    final bool isAdmin =
+        request.jsonData['is_admin'] == true ||
+        request.jsonData['is_staff'] == true ||
+        request.jsonData['username'] == 'admin2';
+    int activeIndex = isAdmin ? 2 : 1;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -107,6 +134,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
           ],
         ),
       ),
+      // --- FAB TAMBAH UNTUK ADMIN ---
       floatingActionButton: isAdmin
           ? FloatingActionButton.extended(
               backgroundColor: const Color(0xFF00BFA6),
@@ -115,302 +143,68 @@ class _EquipmentPageState extends State<EquipmentPage> {
                 style: TextStyle(color: Colors.white),
               ),
               icon: const Icon(Icons.add, color: Colors.white),
-              onPressed: () {},
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const EquipmentFormPage(),
+                ),
+              ),
             )
           : null,
       bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() {
-          _currentIndex = index;
-        }),
+        isAdmin: isAdmin,
+        currentIndex: isAdmin
+            ? 2
+            : 1, // Index 2 adalah ikon 'Grid/List' untuk Admin
+        onTap: (index) {
+          // 1. FIX: Gunakan _currentIndex (pakai underscore) sesuai variabel baris 34
+          if (index == (isAdmin ? 2 : 1)) return;
+
+          if (isAdmin) {
+            // LOGIKA NAVIGASI ADMIN (5 MENU)
+            switch (index) {
+              case 0:
+                Navigator.pushReplacementNamed(
+                  context,
+                  '/home',
+                ); // Ke Page Fields/Home
+                break;
+              case 1:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const EquipmentFormPage(),
+                  ),
+                );
+                break;
+              case 2:
+                break; // Sudah di halaman List
+              case 3:
+                Navigator.pushReplacementNamed(
+                  context,
+                  '/bookings',
+                ); // Ke Page Booking
+                break;
+              case 4:
+                Navigator.pushReplacementNamed(
+                  context,
+                  '/blog',
+                ); // Ke Page Blog
+                break;
+            }
+          } else {
+            // LOGIKA USER BIASA (3 MENU)
+            if (index == 0)
+              Navigator.pushReplacementNamed(context, '/home');
+            else if (index == 2)
+              Navigator.pushReplacementNamed(context, '/blog');
+          }
+        },
       ),
     );
   }
 
-  // --- MODAL SEWA ---
-  void _showBookingBottomSheet(Equipment item, CookieRequest request) {
-    DateTime? selectedDate;
-    String? selectedTime;
-    int quantity = 1;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-                left: 20,
-                right: 20,
-                top: 20,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    "Sewa ${item.fields.name}",
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.calendar_today,
-                      color: Color(0xFF10B981),
-                    ),
-                    title: Text(
-                      selectedDate == null
-                          ? "Pilih Tanggal"
-                          : "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}",
-                    ),
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(const Duration(days: 30)),
-                      );
-                      if (picked != null)
-                        setModalState(() => selectedDate = picked);
-                    },
-                  ),
-                  const Text(
-                    "Pilih Jam (1 Jam):",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    height: 120,
-                    child: SingleChildScrollView(
-                      child: Wrap(
-                        spacing: 8,
-                        children: _timeSlots.map((time) {
-                          bool isSelected = selectedTime == time;
-                          return ChoiceChip(
-                            label: Text(
-                              time,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: isSelected ? Colors.white : Colors.black,
-                              ),
-                            ),
-                            selected: isSelected,
-                            selectedColor: const Color(0xFF00BFA6),
-                            onSelected: (selected) => setModalState(
-                              () => selectedTime = selected ? time : null,
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text("Jumlah Sewa:"),
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.remove_circle_outline),
-                            onPressed: quantity > 1
-                                ? () => setModalState(() => quantity--)
-                                : null,
-                          ),
-                          Text(
-                            "$quantity",
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.add_circle_outline),
-                            onPressed: quantity < item.fields.quantity
-                                ? () => setModalState(() => quantity++)
-                                : null,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 15),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF10B981),
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                    onPressed: (selectedDate == null || selectedTime == null)
-                        ? null
-                        : () {
-                            Navigator.pop(context);
-                            _showPaymentModal(
-                              item,
-                              request,
-                              selectedDate!,
-                              selectedTime!,
-                              quantity,
-                            );
-                          },
-                    child: const Text(
-                      "Lanjut ke Pembayaran",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  // --- MODAL PEMBAYARAN QRIS (FIX) ---
-  void _showPaymentModal(
-    Equipment item,
-    CookieRequest request,
-    DateTime date,
-    String slot,
-    int qty,
-  ) {
-    int startSeconds = 300; // 5 Menit timer
-    Timer? countdownTimer;
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setPaymentState) {
-            countdownTimer ??= Timer.periodic(const Duration(seconds: 1), (
-              timer,
-            ) {
-              if (startSeconds > 0) {
-                setPaymentState(() => startSeconds--);
-              } else {
-                timer.cancel();
-                Navigator.pop(context);
-              }
-            });
-
-            String minutes = (startSeconds ~/ 60).toString().padLeft(2, '0');
-            String seconds = (startSeconds % 60).toString().padLeft(2, '0');
-
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              title: const Center(
-                child: Text(
-                  "Pembayaran QRIS",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    "Segera bayar dalam $minutes:$seconds",
-                    style: const TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  // PNG GENERATOR AGAR GAMBAR MUNCUL
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
-                    ),
-                    child: Image.network(
-                      "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=MatchPlayPayment",
-                      height: 180,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Icon(Icons.broken_image, size: 50),
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  Text(
-                    "Total: Rp ${double.parse(item.fields.pricePerHour) * qty}",
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF10B981),
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                // Di dalam AlertDialog -> actions
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF10B981),
-                    ),
-                    onPressed: () async {
-                      countdownTimer?.cancel();
-                      
-                      // 1. LANGSUNG TUTUP POP-UP (Sesuai request lo, Boy)
-                      Navigator.pop(context); 
-
-                      try {
-                        // 2. JALANKAN PROSES BOOKING DI BACKGROUND
-                        final response = await request.post('$baseUrl/equipment/book/', {
-                          'eq_id': item.pk.toString(),
-                          'date': "${date.year}-${date.month}-${date.day}",
-                          'slot': slot,
-                          'quantity': qty.toString(),
-                        });
-
-                        if (response['status'] == 'success') {
-                          // 3. MUNCULIN NOTIFIKASI BERHASIL
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Booking Berhasil!"), backgroundColor: Colors.green),
-                          );
-                          setState(() {}); // Refresh list biar stok berkurang
-                        } else {
-                          // Notif kalau gagal (misal stok habis di detik terakhir)
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Gagal: ${response['message']}")),
-                          );
-                        }
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Terjadi kesalahan koneksi!")),
-                        );
-                      }
-                    },
-                    child: const Text(
-                      "Konfirmasi Telah Bayar",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    ).then((_) => countdownTimer?.cancel());
-  }
-
-  // --- WIDGET LAINNYA ---
+  // --- WIDGET SEARCH & FILTER ---
   Widget _buildSearchAndFilter() {
     return Column(
       children: [
@@ -419,7 +213,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
           child: TextField(
             onChanged: (v) => setState(() => _searchQuery = v),
             decoration: InputDecoration(
-              hintText: "Search...",
+              hintText: "Search equipment...",
               prefixIcon: const Icon(Icons.search),
               fillColor: Colors.grey[100],
               filled: true,
@@ -435,39 +229,24 @@ class _EquipmentPageState extends State<EquipmentPage> {
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: [
-              "All",
-              "Padel",
-              "Golf",
-              "Volley",
-              "Bola",
-              "Basket",
-            ].length,
-            itemBuilder: (context, i) {
-              String cat = [
-                "All",
-                "Padel",
-                "Golf",
-                "Volley",
-                "Bola",
-                "Basket",
-              ][i];
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: ChoiceChip(
-                  label: Text(cat),
-                  selected: _selectedCategory == cat,
-                  onSelected: (s) =>
-                      setState(() => _selectedCategory = s ? cat : "All"),
+            itemCount: _categories.length,
+            itemBuilder: (context, i) => Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                label: Text(_categories[i]),
+                selected: _selectedCategory == _categories[i],
+                onSelected: (s) => setState(
+                  () => _selectedCategory = s ? _categories[i] : "All",
                 ),
-              );
-            },
+              ),
+            ),
           ),
         ),
       ],
     );
   }
 
+  // --- PRODUCT CARD (ADMIN VS USER) ---
   Widget _buildProductCard(
     Equipment item,
     CookieRequest request,
@@ -509,7 +288,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
                   "Stock: ${item.fields.quantity} | Rp ${item.fields.pricePerHour}",
                   style: const TextStyle(
                     color: Color(0xFF10B981),
-                    fontSize: 12,
+                    fontSize: 11,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -517,13 +296,37 @@ class _EquipmentPageState extends State<EquipmentPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     if (isAdmin) ...[
-                      const Icon(Icons.edit, size: 20, color: Colors.blue),
-                      const Icon(Icons.delete, size: 20, color: Colors.red),
+                      // TOMBOL EDIT & DELETE (KHUSUS ADMIN)
+                      IconButton(
+                        icon: const Icon(
+                          Icons.edit,
+                          size: 20,
+                          color: Colors.blue,
+                        ),
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                EquipmentFormPage(equipment: item),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.delete,
+                          size: 20,
+                          color: Colors.red,
+                        ),
+                        onPressed: () => _showDeleteConfirmation(request, item),
+                      ),
                     ] else ...[
-                      const Icon(
-                        Icons.info_outline,
-                        size: 22,
-                        color: Colors.grey,
+                      GestureDetector(
+                        onTap: () => _showDetailModal(item),
+                        child: const Icon(
+                          Icons.info_outline,
+                          size: 22,
+                          color: Colors.grey,
+                        ),
                       ),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -548,7 +351,335 @@ class _EquipmentPageState extends State<EquipmentPage> {
     );
   }
 
+  // --- MODAL SEWA & PAYMENT ---
+  void _showBookingBottomSheet(Equipment item, CookieRequest request) {
+    DateTime? selectedDate;
+    String? selectedTime;
+    int quantity = 1;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+            left: 20,
+            right: 20,
+            top: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Sewa ${item.fields.name}",
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.calendar_today,
+                  color: Color(0xFF10B981),
+                ),
+                title: Text(
+                  selectedDate == null
+                      ? "Pilih Tanggal"
+                      : "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}",
+                ),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime.now().add(const Duration(days: 30)),
+                  );
+                  if (picked != null)
+                    setModalState(() => selectedDate = picked);
+                },
+              ),
+              const Text("Pilih Jam (1 Jam):"),
+              SizedBox(
+                height: 100,
+                child: SingleChildScrollView(
+                  child: Wrap(
+                    spacing: 8,
+                    children: _timeSlots
+                        .map(
+                          (time) => ChoiceChip(
+                            label: Text(
+                              time,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: selectedTime == time
+                                    ? Colors.white
+                                    : Colors.black,
+                              ),
+                            ),
+                            selected: selectedTime == time,
+                            selectedColor: const Color(0xFF00BFA6),
+                            onSelected: (s) => setModalState(
+                              () => selectedTime = s ? time : null,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text("Jumlah Sewa:"),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle_outline),
+                        onPressed: quantity > 1
+                            ? () => setModalState(() => quantity--)
+                            : null,
+                      ),
+                      Text("$quantity"),
+                      IconButton(
+                        icon: const Icon(Icons.add_circle_outline),
+                        onPressed: quantity < item.fields.quantity
+                            ? () => setModalState(() => quantity++)
+                            : null,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF10B981),
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+                onPressed: (selectedDate == null || selectedTime == null)
+                    ? null
+                    : () {
+                        Navigator.pop(context);
+                        _showPaymentModal(
+                          item,
+                          request,
+                          selectedDate!,
+                          selectedTime!,
+                          quantity,
+                        );
+                      },
+                child: const Text(
+                  "Lanjut ke Pembayaran",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showPaymentModal(
+    Equipment item,
+    CookieRequest request,
+    DateTime date,
+    String slot,
+    int qty,
+  ) {
+    int startSeconds = 300;
+    Timer? countdownTimer;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setPaymentState) {
+          countdownTimer ??= Timer.periodic(const Duration(seconds: 1), (
+            timer,
+          ) {
+            if (startSeconds > 0)
+              setPaymentState(() => startSeconds--);
+            else {
+              timer.cancel();
+              Navigator.pop(context);
+            }
+          });
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Center(child: Text("Pembayaran QRIS")),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Segera bayar dalam ${(startSeconds ~/ 60).toString().padLeft(2, '0')}:${(startSeconds % 60).toString().padLeft(2, '0')}",
+                  style: const TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 15),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: Image.network(
+                    "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=MatchPlay",
+                    height: 180,
+                    errorBuilder: (c, e, s) => const Icon(Icons.broken_image),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                Text(
+                  "Total: Rp ${double.parse(item.fields.pricePerHour) * qty}",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF10B981),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF10B981),
+                  ),
+                  onPressed: () async {
+                    countdownTimer?.cancel();
+                    Navigator.pop(context); // Langsung tutup pop-up
+                    final response = await request.post(
+                      '$baseUrl/equipment/book/',
+                      {
+                        'eq_id': item.pk.toString(),
+                        'date':
+                            "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}",
+                        'slot': slot,
+                        'quantity': qty.toString(),
+                      },
+                    );
+                    if (context.mounted) {
+                      if (response['status'] == 'success') {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Booking Berhasil!")),
+                        );
+                        setState(() {});
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("Gagal: ${response['message']}"),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: const Text(
+                    "Konfirmasi Telah Bayar",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    ).then((_) => countdownTimer?.cancel());
+  }
+
+  // --- UTILITIES ---
   String _getImageUrl(String? p) => (p == null || p.isEmpty)
       ? "https://via.placeholder.com/150"
       : (p.startsWith('http') ? p : "$baseUrl/media/$p");
+
+  void _showDeleteConfirmation(CookieRequest r, Equipment i) {
+    showDialog(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text("Hapus Alat?"),
+        content: Text("Yakin mau hapus ${i.fields.name}?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c),
+            child: const Text("Batal"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(c);
+              _deleteEquipment(r, i.pk);
+            },
+            child: const Text("Hapus", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDetailModal(Equipment i) {
+    showDialog(
+      context: context,
+      builder: (c) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+              child: Image.network(
+                _getImageUrl(i.fields.image),
+                height: 180,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    i.fields.name,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    "Rp ${i.fields.pricePerHour}",
+                    style: const TextStyle(
+                      color: Color(0xFF10B981),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(i.fields.description),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF00BFA6),
+                      ),
+                      onPressed: () => Navigator.pop(c),
+                      child: const Text(
+                        "Tutup",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
