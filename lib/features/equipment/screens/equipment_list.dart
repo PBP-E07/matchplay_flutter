@@ -3,7 +3,9 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:matchplay_flutter/features/equipment/models/equipment.dart';
 import 'package:matchplay_flutter/widgets/custom_bottom_navbar.dart';
-import 'dart:async'; // Buat Timer hitung mundur
+import 'package:matchplay_flutter/config.dart';
+import 'package:matchplay_flutter/features/equipment/screens/equipment_form.dart';
+import 'dart:async';
 
 class EquipmentPage extends StatefulWidget {
   const EquipmentPage({super.key});
@@ -13,13 +15,11 @@ class EquipmentPage extends StatefulWidget {
 }
 
 class _EquipmentPageState extends State<EquipmentPage> {
-  final String baseUrl =
-      'http://localhost:8000'; // Pake 10.0.2.2 kalau emulator
+  final String baseUrl = AppConfig.baseUrl;
   String _searchQuery = "";
   String _selectedCategory = "All";
-  int _currentIndex = 1;
 
-  // Slot jam per 1 jam sesuai request lo
+  // Slot jam per 1 jam sesuai request
   final List<String> _timeSlots = [
     "06:00-07:00",
     "07:00-08:00",
@@ -56,10 +56,34 @@ class _EquipmentPageState extends State<EquipmentPage> {
     return listEquipment;
   }
 
+  Future<void> _deleteEquipment(CookieRequest request, int id) async {
+    try {
+      final response = await request.post(
+        '$baseUrl/equipment/delete-flutter/$id/',
+        {},
+      );
+      if (response['status'] == 'success') {
+        setState(() {}); // Refresh halaman
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Berhasil dihapus")));
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Gagal menghapus")));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: $e")));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
-    final bool isAdmin = request.jsonData['is_admin'] ?? false;
+    final bool isAdmin = request.jsonData['is_staff'] ?? false;
+    final int navIndex = isAdmin ? 4 : 2;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -115,14 +139,20 @@ class _EquipmentPageState extends State<EquipmentPage> {
                 style: TextStyle(color: Colors.white),
               ),
               icon: const Icon(Icons.add, color: Colors.white),
-              onPressed: () {},
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const EquipmentFormPage(),
+                  ),
+                );
+                setState(() {}); // Refresh setelah kembali dari form
+              },
             )
           : null,
       bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() {
-          _currentIndex = index;
-        }),
+        currentIndex: navIndex,
+        isAdmin: isAdmin,
       ),
     );
   }
@@ -362,34 +392,42 @@ class _EquipmentPageState extends State<EquipmentPage> {
                     ),
                     onPressed: () async {
                       countdownTimer?.cancel();
-                      
+
                       // 1. LANGSUNG TUTUP POP-UP (Sesuai request lo, Boy)
-                      Navigator.pop(context); 
+                      Navigator.pop(context);
 
                       try {
                         // 2. JALANKAN PROSES BOOKING DI BACKGROUND
-                        final response = await request.post('$baseUrl/equipment/book/', {
-                          'eq_id': item.pk.toString(),
-                          'date': "${date.year}-${date.month}-${date.day}",
-                          'slot': slot,
-                          'quantity': qty.toString(),
-                        });
+                        final response = await request
+                            .post('$baseUrl/equipment/book/', {
+                              'eq_id': item.pk.toString(),
+                              'date': "${date.year}-${date.month}-${date.day}",
+                              'slot': slot,
+                              'quantity': qty.toString(),
+                            });
 
                         if (response['status'] == 'success') {
                           // 3. MUNCULIN NOTIFIKASI BERHASIL
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Booking Berhasil!"), backgroundColor: Colors.green),
+                            const SnackBar(
+                              content: Text("Booking Berhasil!"),
+                              backgroundColor: Colors.green,
+                            ),
                           );
                           setState(() {}); // Refresh list biar stok berkurang
                         } else {
                           // Notif kalau gagal (misal stok habis di detik terakhir)
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Gagal: ${response['message']}")),
+                            SnackBar(
+                              content: Text("Gagal: ${response['message']}"),
+                            ),
                           );
                         }
                       } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Terjadi kesalahan koneksi!")),
+                          const SnackBar(
+                            content: Text("Terjadi kesalahan koneksi!"),
+                          ),
                         );
                       }
                     },
@@ -517,8 +555,68 @@ class _EquipmentPageState extends State<EquipmentPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     if (isAdmin) ...[
-                      const Icon(Icons.edit, size: 20, color: Colors.blue),
-                      const Icon(Icons.delete, size: 20, color: Colors.red),
+                      // Tombol Edit
+                      IconButton(
+                        icon: const Icon(
+                          Icons.edit,
+                          size: 20,
+                          color: Colors.blue,
+                        ),
+                        padding: EdgeInsets.zero,
+                        constraints:
+                            const BoxConstraints(), // Agar tidak makan tempat
+                        onPressed: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EquipmentFormPage(),
+                            ),
+                          );
+                          setState(() {});
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      // Tombol Delete
+                      IconButton(
+                        icon: const Icon(
+                          Icons.delete,
+                          size: 20,
+                          color: Colors.red,
+                        ),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () {
+                          // Konfirmasi Hapus
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text("Hapus Alat"),
+                              content: Text(
+                                "Yakin ingin menghapus ${item.fields.name}?",
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: const Text("Batal"),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                  ),
+                                  onPressed: () {
+                                    Navigator.pop(ctx);
+                                    _deleteEquipment(request, item.pk);
+                                  },
+                                  child: const Text(
+                                    "Hapus",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                     ] else ...[
                       const Icon(
                         Icons.info_outline,

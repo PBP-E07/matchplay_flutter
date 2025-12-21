@@ -78,15 +78,13 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
         });
       }
     } catch (e) {
-      debugPrint('Error incrementing view count: $e');
+      // debugPrint('Error incrementing view count: $e');
     }
 
     if (mounted) {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => BlogDetailPage(blog: blog),
-        ),
+        MaterialPageRoute(builder: (context) => BlogDetailPage(blog: blog)),
       );
     }
   }
@@ -110,15 +108,19 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
                   onTap: () => _handleCardTap(blog),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
-                    child: (blog.thumbnail != null && blog.thumbnail!.isNotEmpty)
+                    child:
+                        (blog.thumbnail != null && blog.thumbnail!.isNotEmpty)
                         ? Image.network(
                             '${blogUrl}proxy-image/?url=${Uri.encodeComponent(blog.thumbnail!)}',
                             fit: BoxFit.cover,
-                            errorBuilder: (c, o, s) => const Center(child: Icon(Icons.error)),
+                            errorBuilder: (c, o, s) =>
+                                const Center(child: Icon(Icons.error)),
                           )
                         : Container(
                             color: Colors.grey[300],
-                            child: const Center(child: Icon(Icons.photo, color: Colors.grey)),
+                            child: const Center(
+                              child: Icon(Icons.photo, color: Colors.grey),
+                            ),
                           ),
                   ),
                 ),
@@ -151,9 +153,7 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
     final isAdmin = context.watch<UserProvider>().isAdmin;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Blog'),
-      ),
+      appBar: AppBar(title: const Text('Blog')),
       drawer: const LeftDrawer(),
       backgroundColor: const Color(0xFFF5F5F5),
       body: FutureBuilder<List<Blog>>(
@@ -173,7 +173,13 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
                   if (blogs.isNotEmpty) _buildCarousel(blogs),
                   const Padding(
                     padding: EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 8.0),
-                    child: Text('Latest Article', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    child: Text(
+                      'Latest Article',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                   if (blogs.isNotEmpty)
                     Padding(
@@ -195,7 +201,10 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
                     const Center(
                       child: Padding(
                         padding: EdgeInsets.all(32.0),
-                        child: Text('There are no blog entries yet.', style: TextStyle(color: Colors.grey)),
+                        child: Text(
+                          'There are no blog entries yet.',
+                          style: TextStyle(color: Colors.grey),
+                        ),
                       ),
                     ),
                 ],
