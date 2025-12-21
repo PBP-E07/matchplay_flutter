@@ -221,13 +221,11 @@ class _FieldFormScreenState extends State<FieldFormScreen> {
                             ),
                             keyboardType: TextInputType.number,
                             validator: (value) {
-                              if (value == null || value.isEmpty) {
+                              if (value == null || value.isEmpty)
                                 return 'Wajib diisi';
-                              }
-                              // Cek apakah value valid sebagai integer
-                              if (int.tryParse(value) == null) {
-                                return 'Harus berupa angka bulat valid';
-                              }
+                              final n = int.tryParse(value);
+                              if (n == null) return 'Harus angka bulat';
+                              if (n < 0) return 'Harga tidak boleh negatif';
                               return null;
                             },
                           ),
@@ -266,8 +264,11 @@ class _FieldFormScreenState extends State<FieldFormScreen> {
                         labelText: 'Alamat / Lokasi',
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) =>
-                          value!.isEmpty ? 'Wajib diisi' : null,
+                      validator: (value) {
+                        if (value == null || value.isEmpty)
+                          return 'Wajib diisi';
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
 
@@ -325,8 +326,15 @@ class _FieldFormScreenState extends State<FieldFormScreen> {
                         labelText: 'URL Gambar',
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) =>
-                          value!.isEmpty ? 'Wajib diisi' : null,
+                      validator: (value) {
+                        if (value == null || value.isEmpty)
+                          return 'Wajib diisi';
+                        // Cek sederhana apakah format URL valid
+                        if (!Uri.parse(value).isAbsolute) {
+                          return 'Format URL tidak valid (Gunakan http/https)';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
 
@@ -337,8 +345,15 @@ class _FieldFormScreenState extends State<FieldFormScreen> {
                         labelText: 'URL Google Maps',
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) =>
-                          value!.isEmpty ? 'Wajib diisi' : null,
+                      validator: (value) {
+                        if (value == null || value.isEmpty)
+                          return 'Wajib diisi';
+                        // Cek sederhana apakah format URL valid
+                        if (!Uri.parse(value).isAbsolute) {
+                          return 'Format URL tidak valid (Gunakan http/https)';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 24),
 

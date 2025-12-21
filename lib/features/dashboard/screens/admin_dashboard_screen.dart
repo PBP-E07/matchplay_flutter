@@ -4,7 +4,7 @@ import 'package:matchplay_flutter/widgets/left_drawer.dart';
 // Management Screen
 import 'fields/field_management_screen.dart';
 import 'equipment/equipment_management_screen.dart';
-// import 'blogs/blog_management_screen.dart';
+import 'blog/blog_management_screen.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
@@ -47,7 +47,7 @@ class AdminDashboardScreen extends StatelessWidget {
             EquipmentManagementScreen(),
 
             // Tab 3: Modul Blog
-            Center(child: Text("Modul Blog (Coming Soon)")),
+            BlogManagementScreen(),
           ],
         ),
       ),

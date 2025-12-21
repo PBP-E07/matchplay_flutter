@@ -2,34 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 
-// Equipment
-import '../../../equipment/models/equipment.dart';
-import '../../../equipment/services/equipment_service.dart';
+// Imports Feature Blog
+import '../../../../features/blog/models/blog_entry.dart';
+import '../../../../features/blog/services/blog_service.dart';
 
-// Shared Widgets
+// Import Screens
+import 'blog_form_screen.dart';
+
+// Imports Shared Widgets (Dashboard)
 import '../../widgets/dashboard_stats.dart';
 import '../../widgets/admin_toolbar.dart';
 import '../../widgets/admin_filter_dialog.dart';
 import '../../widgets/pagination_bar.dart';
 
-// Screens
-import 'equipment_form_screen.dart';
+// Local Component
+import 'components/blog_table.dart';
 
-// Components
-import 'components/equipment_table.dart';
-
-class EquipmentManagementScreen extends StatefulWidget {
-  const EquipmentManagementScreen({super.key});
+class BlogManagementScreen extends StatefulWidget {
+  const BlogManagementScreen({super.key});
 
   @override
-  State<EquipmentManagementScreen> createState() =>
-      _EquipmentManagementScreenState();
+  State<BlogManagementScreen> createState() => _BlogManagementScreenState();
 }
 
-class _EquipmentManagementScreenState extends State<EquipmentManagementScreen> {
-  final _service = EquipmentService();
+class _BlogManagementScreenState extends State<BlogManagementScreen> {
+  final _service = BlogService();
 
-  List<Equipment> _equipments = [];
+  List<Blog> _blogs = [];
   bool _isLoading = true;
 
   // Pagination & Meta
@@ -37,45 +36,58 @@ class _EquipmentManagementScreenState extends State<EquipmentManagementScreen> {
   int _totalPages = 1;
   int _totalData = 0;
   int _perPage = 10;
-  final List<int> _pageSizeList = [5, 10, 20, 50];
+  final List<int> _pageSizeList = [5, 10, 20];
 
   // Stats
-  double _avgPrice = 0.0;
-  int _totalQty = 0;
+  int _totalViews = 0;
+  int _totalAuthors = 0;
 
-  // Filter State
-  int? _filterMinPrice;
-  int? _filterMaxPrice;
+  // Filter
+  String? _filterCategory;
+  int? _filterMinViews;
+  int? _filterMaxViews;
+
+  // Categories for Filter Dialog
+  final List<Map<String, String>> _filterCategories = [
+    {'value': 'padel', 'label': 'Padel'},
+    {'value': 'basket', 'label': 'Basket'},
+    {'value': 'futsal', 'label': 'Futsal'},
+    {'value': 'badminton', 'label': 'Badminton'},
+    {'value': 'Health & Fitness', 'label': 'Health & Fitness'},
+  ];
 
   @override
   void initState() {
     super.initState();
-    _fetchData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchData();
+    });
   }
 
   Future<void> _fetchData({int page = 1}) async {
     setState(() => _isLoading = true);
-
     final request = context.read<CookieRequest>();
+
     try {
-      final result = await _service.fetchEquipments(
+      final result = await _service.fetchBlogs(
         request,
         page: page,
         perPage: _perPage,
-        minPrice: _filterMinPrice,
-        maxPrice: _filterMaxPrice,
+        category: _filterCategory,
+        minViews: _filterMinViews,
+        maxViews: _filterMaxViews,
       );
 
       if (!mounted) return;
 
       setState(() {
-        _equipments = result['data'];
+        _blogs = List<Blog>.from(result['data']);
         final meta = result['meta'];
         _totalData = meta['total_data'];
         _totalPages = meta['total_pages'];
         _currentPage = meta['current_page'];
-        _avgPrice = meta['avg_price'];
-        _totalQty = meta['total_qty'];
+        _totalViews = meta['total_views'];
+        _totalAuthors = meta['total_authors'];
         _isLoading = false;
       });
     } catch (e) {
@@ -87,47 +99,35 @@ class _EquipmentManagementScreenState extends State<EquipmentManagementScreen> {
     }
   }
 
-  // Navigasi ke Form (Create / Edit)
-  void _openForm({Equipment? equipment}) async {
-    final bool? refresh = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EquipmentFormScreen(equipment: equipment),
-      ),
-    );
-
-    // Jika berhasil simpan (return true), refresh data
-    if (refresh == true) {
-      _fetchData(page: _currentPage);
-    }
-  }
-
   void _showFilterDialog() async {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => AdminFilterDialog(
-        currentMin: _filterMinPrice,
-        currentMax: _filterMaxPrice,
-        categories: null, // Equipment tidak pakai kategori
+        currentCategory: _filterCategory,
+        currentMin: _filterMinViews,
+        currentMax: _filterMaxViews,
+        categories: _filterCategories,
+        rangeTitle: "Jumlah Views",
       ),
     );
 
     if (result != null) {
       setState(() {
-        _filterMinPrice = result['minPrice'];
-        _filterMaxPrice = result['maxPrice'];
+        _filterCategory = result['category'];
+        _filterMinViews = result['min'];
+        _filterMaxViews = result['max'];
         _currentPage = 1;
       });
       _fetchData(page: 1);
     }
   }
 
-  void _onDelete(Equipment item) {
+  void _onDelete(Blog item) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Konfirmasi Hapus'),
-        content: Text('Hapus alat "${item.fields.name}"?'),
+        title: const Text('Hapus Artikel'),
+        content: Text('Yakin ingin menghapus artikel "${item.title}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -138,7 +138,7 @@ class _EquipmentManagementScreenState extends State<EquipmentManagementScreen> {
             onPressed: () async {
               Navigator.pop(context);
               final request = context.read<CookieRequest>();
-              bool success = await _service.deleteEquipment(request, item.pk);
+              bool success = await _service.deleteBlog(request, item.id);
               if (mounted) {
                 if (success) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -159,9 +159,19 @@ class _EquipmentManagementScreenState extends State<EquipmentManagementScreen> {
     );
   }
 
+  void _openForm({Blog? blog}) async {
+    final bool? refresh = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => BlogFormScreen(blog: blog)),
+    );
+    if (refresh == true) {
+      _fetchData(page: _currentPage);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_isLoading && _equipments.isEmpty) {
+    if (_isLoading && _blogs.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -177,7 +187,7 @@ class _EquipmentManagementScreenState extends State<EquipmentManagementScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "Equipment Dashboard",
+                  "Blog Dashboard",
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -186,29 +196,29 @@ class _EquipmentManagementScreenState extends State<EquipmentManagementScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Stats
+                // Stats Card
                 DashboardStats(
-                  // Kartu 1: Equipments
-                  totalLabel: "Total Equipments",
-                  icon1: Icons.sports_tennis,
+                  // Kartu 1: Articles
+                  icon1: Icons.article,
                   totalData: _totalData,
+                  totalLabel: "Total Articles",
 
-                  // Kartu 2: Price
-                  avgPrice: _avgPrice,
-                  avgPriceLabel: "Average Price/Hour",
-                  isCurrency: true,
-                  icon2: Icons.attach_money,
+                  // Kartu 2: Authors
+                  avgPrice: _totalAuthors.toDouble(),
+                  avgPriceLabel: "Total Authors",
+                  isCurrency: false,
+                  icon2: Icons.people,
 
-                  // Kartu 3: Quatity
-                  avgRating: _totalQty.toDouble(),
-                  avgRatingLabel: "Total Quantity",
-                  icon3: Icons.inventory_2,
+                  // Kartu 3: Views
+                  avgRating: _totalViews.toDouble(),
+                  avgRatingLabel: "Total Views",
+                  icon3: Icons.visibility,
                   isCard3Int: true,
                 ),
 
                 const SizedBox(height: 32),
                 const Text(
-                  "Daftar Alat Olahraga",
+                  "Daftar Artikel",
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
@@ -221,7 +231,7 @@ class _EquipmentManagementScreenState extends State<EquipmentManagementScreen> {
                   currentPage: _currentPage,
                   perPage: _perPage,
                   pageSizeList: _pageSizeList,
-                  addButtonLabel: "Tambah Alat",
+                  addButtonLabel: "Tulis Artikel",
                   onPerPageChanged: (val) {
                     setState(() {
                       _perPage = val;
@@ -234,9 +244,9 @@ class _EquipmentManagementScreenState extends State<EquipmentManagementScreen> {
                 const SizedBox(height: 16),
 
                 // Table
-                EquipmentTable(
-                  equipments: _equipments,
-                  onEdit: (item) => _openForm(equipment: item),
+                BlogTable(
+                  blogs: _blogs,
+                  onEdit: (item) => _openForm(blog: item),
                   onDelete: _onDelete,
                 ),
 

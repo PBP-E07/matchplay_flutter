@@ -2,16 +2,18 @@ import 'package:flutter/material.dart';
 
 class AdminFilterDialog extends StatefulWidget {
   final String? currentCategory;
-  final int? currentMinPrice;
-  final int? currentMaxPrice;
-  final List<Map<String, String>>? categories; // Opsional
+  final int? currentMin;
+  final int? currentMax;
+  final List<Map<String, String>>? categories;
+  final String rangeTitle;
 
   const AdminFilterDialog({
     super.key,
     this.currentCategory,
-    this.currentMinPrice,
-    this.currentMaxPrice,
+    this.currentMin,
+    this.currentMax,
     this.categories,
+    this.rangeTitle = "Price Range (Rp)", // Default
   });
 
   @override
@@ -19,18 +21,18 @@ class AdminFilterDialog extends StatefulWidget {
 }
 
 class _AdminFilterDialogState extends State<AdminFilterDialog> {
-  late TextEditingController _minPriceController;
-  late TextEditingController _maxPriceController;
+  late TextEditingController _minController;
+  late TextEditingController _maxController;
   String? _selectedCategory;
 
   @override
   void initState() {
     super.initState();
-    _minPriceController = TextEditingController(
-      text: widget.currentMinPrice?.toString() ?? '',
+    _minController = TextEditingController(
+      text: widget.currentMin?.toString() ?? '',
     );
-    _maxPriceController = TextEditingController(
-      text: widget.currentMaxPrice?.toString() ?? '',
+    _maxController = TextEditingController(
+      text: widget.currentMax?.toString() ?? '',
     );
     _selectedCategory = widget.currentCategory;
   }
@@ -46,7 +48,6 @@ class _AdminFilterDialogState extends State<AdminFilterDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Dropdown Kategori (Hanya muncul jika categories disediakan)
             if (widget.categories != null) ...[
               const Text(
                 "Category",
@@ -54,7 +55,7 @@ class _AdminFilterDialogState extends State<AdminFilterDialog> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                initialValue: _selectedCategory,
+                value: _selectedCategory,
                 decoration: const InputDecoration(border: OutlineInputBorder()),
                 items: [
                   const DropdownMenuItem(value: null, child: Text("All")),
@@ -70,16 +71,16 @@ class _AdminFilterDialogState extends State<AdminFilterDialog> {
               const SizedBox(height: 16),
             ],
 
-            const Text(
-              "Price Range (Rp)",
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Text(
+              widget.rangeTitle,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: TextField(
-                    controller: _minPriceController,
+                    controller: _minController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       hintText: "Min",
@@ -90,7 +91,7 @@ class _AdminFilterDialogState extends State<AdminFilterDialog> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextField(
-                    controller: _maxPriceController,
+                    controller: _maxController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       hintText: "Max",
@@ -104,24 +105,32 @@ class _AdminFilterDialogState extends State<AdminFilterDialog> {
         ),
       ),
       actions: [
+        // Close
         ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+          ),
           onPressed: () => Navigator.pop(context),
-          child: const Text("Close", style: TextStyle(color: Colors.white)),
+          child: const Text("Close"),
         ),
+
+        const SizedBox(width: 8),
+
+        // Apply
         ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
+          ),
           onPressed: () {
             Navigator.pop(context, {
               'category': _selectedCategory,
-              'minPrice': int.tryParse(_minPriceController.text),
-              'maxPrice': int.tryParse(_maxPriceController.text),
+              'min': int.tryParse(_minController.text),
+              'max': int.tryParse(_maxController.text),
             });
           },
-          child: const Text(
-            "Apply Filters",
-            style: TextStyle(color: Colors.white),
-          ),
+          child: const Text("Apply Filters"),
         ),
       ],
     );

@@ -1,5 +1,7 @@
 // Package Umum
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
 
 // Equipment
 import '../../../equipment/models/equipment.dart';
@@ -54,7 +56,19 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // Safety check tambahan (meskipun validator sudah menangani)
+    final qty = int.tryParse(_quantityController.text);
+    final price = double.tryParse(_priceController.text);
+
+    if (qty == null || price == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Format angka tidak valid!")),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
+    final request = context.read<CookieRequest>();
 
     // Persiapkan Data
     final data = {
@@ -68,10 +82,14 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
     try {
       if (widget.equipment == null) {
         // Create Mode
-        success = await _service.createEquipment(data);
+        success = await _service.createEquipment(request, data);
       } else {
         // Edit Mode
-        success = await _service.editEquipment(widget.equipment!.pk, data);
+        success = await _service.editEquipment(
+          request,
+          widget.equipment!.pk,
+          data,
+        );
       }
 
       if (!mounted) return;
@@ -137,8 +155,14 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
                               border: OutlineInputBorder(),
                             ),
                             keyboardType: TextInputType.number,
-                            validator: (val) =>
-                                val!.isEmpty ? "Wajib diisi" : null,
+                            validator: (val) {
+                              if (val == null || val.isEmpty)
+                                return "Wajib diisi";
+                              final n = int.tryParse(val);
+                              if (n == null) return "Harus angka bulat";
+                              if (n < 0) return "Tidak boleh negatif";
+                              return null;
+                            },
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -151,8 +175,14 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
                               border: OutlineInputBorder(),
                             ),
                             keyboardType: TextInputType.number,
-                            validator: (val) =>
-                                val!.isEmpty ? "Wajib diisi" : null,
+                            validator: (val) {
+                              if (val == null || val.isEmpty)
+                                return "Wajib diisi";
+                              final n = int.tryParse(val);
+                              if (n == null) return "Harus angka bulat";
+                              if (n < 0) return "Tidak boleh negatif";
+                              return null;
+                            },
                           ),
                         ),
                       ],

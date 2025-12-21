@@ -130,8 +130,8 @@ class _FieldManagementScreenState extends State<FieldManagementScreen> {
       context: context,
       builder: (context) => AdminFilterDialog(
         currentCategory: _filterCategory,
-        currentMinPrice: _filterMinPrice,
-        currentMaxPrice: _filterMaxPrice,
+        currentMin: _filterMinPrice,
+        currentMax: _filterMaxPrice,
         categories: _sportCategories,
       ),
     );
