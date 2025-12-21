@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:matchplay_flutter/features/blog/screens/blog_entry_list.dart';
 
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key});
+class BlogPage extends StatelessWidget {
+  const BlogPage({super.key});
 
   @override
   Widget build(BuildContext context) {
