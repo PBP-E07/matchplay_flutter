@@ -4,7 +4,6 @@ import 'package:matchplay_flutter/features/fields/models/field.dart';
 import 'package:matchplay_flutter/features/home/widgets/field_card.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-import 'package:matchplay_flutter/features/dashboard/screens/admin_dashboard_screen.dart';
 import 'package:matchplay_flutter/features/equipment/screens/equipment_list.dart';
 
 class HomePage extends StatefulWidget {
@@ -16,10 +15,19 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   Future<List<Field>> fetchFields(CookieRequest request) async {
-    final response = await request.get('http://localhost:8000/api/fields/');
+    final response = await request.get('http://localhost:8000/api/fields/?per_page=10000');
+
+    var dataList = [];
+
+    if (response is Map<String, dynamic>) {
+      if (response.containsKey('data') && response['data'] is Map) {
+        dataList = response['data']['fields'];
+      }
+    }
 
     List<Field> listFields = [];
-    for (var d in response) {
+
+    for (var d in dataList) {
       if (d != null) {
         listFields.add(Field.fromJson(d));
       }
@@ -39,9 +47,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           Container(
             height: 220,
-            decoration: const BoxDecoration(
-              color: Color(0xFF00BFA6),
-            ),
+            decoration: const BoxDecoration(color: Color(0xFF00BFA6)),
           ),
 
           SafeArea(
@@ -163,14 +169,7 @@ class _HomePageState extends State<HomePage> {
                 MaterialPageRoute(builder: (context) => const HomePage()),
               );
             }),
-            _buildBottomNavItem(Icons.emoji_events, "Admin", () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AdminDashboardScreen(),
-                ),
-              );
-            }),
+            _buildBottomNavItem(Icons.emoji_events, "Admin", () {}),
             _buildBottomNavItem(Icons.shopping_cart, "Equip", () {
               Navigator.push(
                 context,
