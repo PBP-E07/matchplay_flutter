@@ -96,9 +96,10 @@ class _EquipmentFormPageState extends State<EquipmentFormPage> {
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       // Tentukan endpoint: create atau edit
+                      String baseUrl = AppConfig.baseUrl;
                       String url = isEdit
-                          ? 'http://localhost:8000/equipment/edit-flutter/${widget.equipment!.pk}/'
-                          : 'http://localhost:8000/equipment/create-flutter/';
+                          ? '$baseUrl/equipment/edit-flutter/${widget.equipment!.pk}/'
+                          : '$baseUrl/equipment/create-flutter/';
 
                       final response = await request.post(
                         url,
