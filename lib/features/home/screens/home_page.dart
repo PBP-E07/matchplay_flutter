@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:matchplay_flutter/config.dart'; // IMPORT THIS
 import 'package:matchplay_flutter/features/blog/screens/blog_entry_list.dart';
 import 'package:matchplay_flutter/features/fields/models/field.dart';
 import 'package:matchplay_flutter/features/home/widgets/field_card.dart';
 import 'package:matchplay_flutter/features/matches/screens/create_match_form.dart';
+import 'package:matchplay_flutter/features/matches/screens/match_list.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:matchplay_flutter/features/equipment/screens/equipment_list.dart';
@@ -18,8 +20,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   Future<List<Field>> fetchFields(CookieRequest request) async {
+    // USE AppConfig.baseUrl HERE
     final response = await request.get(
-      'http://localhost:8000/api/fields/?per_page=10000',
+      '${AppConfig.baseUrl}/api/fields/?per_page=10000',
     );
 
     var dataList = [];
@@ -48,14 +51,12 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-
       body: Stack(
         children: [
           Container(
             height: 220,
             decoration: const BoxDecoration(color: Color(0xFF00BFA6)),
           ),
-
           SafeArea(
             child: Column(
               children: [
@@ -72,7 +73,6 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Card(
@@ -131,9 +131,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 Expanded(
                   child: FutureBuilder(
                     future: fetchFields(request),
@@ -162,7 +160,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-
       bottomNavigationBar: BottomAppBar(
         height: 70,
         color: Colors.white,
@@ -172,20 +169,25 @@ class _HomePageState extends State<HomePage> {
             _buildBottomNavItem(Icons.home, "Home", () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => HomePage()),
+                MaterialPageRoute(builder: (context) => const HomePage()),
               );
             }),
-
-            if (isAdmin)
-              _buildBottomNavItem(Icons.create, "Matchmake", () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const CreateMatchForm(),
-                  ),
-                );
-              }),
-
+            _buildBottomNavItem(Icons.create, "Matchmake", () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreateMatchForm(),
+                ),
+              );
+            }),
+            _buildBottomNavItem(Icons.list, "Blog", () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MatchListScreen(),
+                ),
+              );
+            }),
             if (isAdmin)
               _buildBottomNavItem(Icons.dashboard, "Admin", () {
                 Navigator.push(
@@ -195,14 +197,12 @@ class _HomePageState extends State<HomePage> {
                   ),
                 );
               }),
-
             _buildBottomNavItem(Icons.shopping_cart, "Equip", () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const EquipmentPage()),
               );
             }),
-
             _buildBottomNavItem(Icons.article, "Blog", () {
               Navigator.push(
                 context,
@@ -217,7 +217,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildBottomNavItem(IconData icon, String label, VoidCallback onTap) {
+  Widget _buildBottomNavItem(
+      IconData icon, String label, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Column(

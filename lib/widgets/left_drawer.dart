@@ -3,6 +3,8 @@ import '../features/home/screens/home_page.dart';
 import '../features/blog/screens/blog_entry_list.dart';
 import 'package:matchplay_flutter/features/dashboard/screens/admin_dashboard_screen.dart';
 import 'package:matchplay_flutter/features/equipment/screens/equipment_list.dart';
+import 'package:matchplay_flutter/features/tournament/screens/tournament_list.dart';
+import 'package:matchplay_flutter/features/matches/screens/create_match_form.dart'; 
 
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
@@ -51,7 +53,31 @@ class LeftDrawer extends StatelessWidget {
             },
           ),
 
-          // Dashboard
+          // Match
+          ListTile(
+            leading: const Icon(Icons.create), 
+            title: const Text('Matchmake'),
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const CreateMatchForm()),
+              );
+            },
+          ),
+
+          // Daftar Turnamen 
+          ListTile(
+            leading: const Icon(Icons.emoji_events),
+            title: const Text('Daftar Turnamen'),
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const TournamentListPage()),
+              );
+            },
+          ),
+
+          // Dashboard Admin
           ListTile(
             leading: const Icon(Icons.folder_open),
             title: const Text('Dashboard Admin'),
@@ -65,7 +91,7 @@ class LeftDrawer extends StatelessWidget {
             },
           ),
 
-          // Equipment
+          // 5. Equipment
           ListTile(
             leading: const Icon(Icons.sports_tennis),
             title: const Text('Daftar Equipment'),
