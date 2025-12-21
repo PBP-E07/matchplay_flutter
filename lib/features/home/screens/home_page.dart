@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:matchplay_flutter/features/blog/screens/blog_entry_list.dart';
 import 'package:matchplay_flutter/features/fields/models/field.dart';
 import 'package:matchplay_flutter/features/home/widgets/field_card.dart';
+import 'package:matchplay_flutter/features/matches/screens/create_match_form.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:matchplay_flutter/features/equipment/screens/equipment_list.dart';
@@ -15,7 +16,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   Future<List<Field>> fetchFields(CookieRequest request) async {
-    final response = await request.get('http://localhost:8000/api/fields/?per_page=10000');
+    final response = await request.get(
+      'http://localhost:8000/api/fields/?per_page=10000',
+    );
 
     var dataList = [];
 
@@ -167,6 +170,14 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const HomePage()),
+              );
+            }),
+            _buildBottomNavItem(Icons.create, "Matchmake", () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreateMatchForm(),
+                ),
               );
             }),
             _buildBottomNavItem(Icons.emoji_events, "Admin", () {}),
