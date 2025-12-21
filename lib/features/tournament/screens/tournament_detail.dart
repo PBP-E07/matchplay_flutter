@@ -117,11 +117,11 @@ class _TournamentDetailPageState extends State<TournamentDetailPage> {
                 itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                   const PopupMenuItem<String>(
                     value: 'edit',
-                    child: Row(children: [Icon(Icons.edit, color: Colors.orange), SizedBox(width: 12), Text('Edit')]),
+                    child: Text('Edit'),
                   ),
                   const PopupMenuItem<String>(
                     value: 'delete',
-                    child: Row(children: [Icon(Icons.delete, color: Colors.red), SizedBox(width: 12), Text('Hapus')]),
+                    child: Text('Hapus', style: TextStyle(color: Colors.red)),
                   ),
                 ],
               ),
