@@ -22,6 +22,14 @@ class BlogTable extends StatelessWidget {
       fontSize: 14,
     );
 
+    final Map<String, String> categoryLabels = {
+      'padel': 'Padel',
+      'basket': 'Basket',
+      'futsal': 'Futsal',
+      'badminton': 'Badminton',
+      'Health & Fitness': 'Health & Fitness',
+    };
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -63,6 +71,8 @@ class BlogTable extends StatelessWidget {
                     ),
                   ],
                   rows: blogs.map((item) {
+                    String displayCategory =
+                        categoryLabels[item.category] ?? item.category;
                     return DataRow(
                       cells: [
                         // Title
@@ -78,6 +88,7 @@ class BlogTable extends StatelessWidget {
                             ),
                           ),
                         ),
+
                         // Author
                         DataCell(Text(item.author)),
 
@@ -96,7 +107,7 @@ class BlogTable extends StatelessWidget {
                               ),
                             ),
                             child: Text(
-                              item.category,
+                              displayCategory,
                               style: const TextStyle(
                                 color: Colors.blue,
                                 fontSize: 12,

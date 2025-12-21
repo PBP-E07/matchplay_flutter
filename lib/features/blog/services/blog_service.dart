@@ -15,6 +15,8 @@ class BlogService {
     int perPage = 10,
     String? search, // Search by Title
     String? category, // Filter by Category
+    int? minViews,
+    int? maxViews,
   }) async {
     final uri = '$baseUrl${_endpoint}json/';
 
@@ -44,10 +46,20 @@ class BlogService {
             .toList();
       }
 
+      // 3. Filter views
+      if (minViews != null) {
+        allBlogs = allBlogs.where((b) => b.blogViews >= minViews).toList();
+      }
+      if (maxViews != null) {
+        allBlogs = allBlogs.where((b) => b.blogViews <= maxViews).toList();
+      }
+
       // 3. Hitung Stats (Total Data & Total Views)
       int totalViews = 0;
+      Set<String> uniqueAuthors = {};
       for (var b in allBlogs) {
         totalViews += b.blogViews;
+        uniqueAuthors.add(b.author);
       }
 
       // 4. Client-side Pagination Logic
@@ -70,6 +82,7 @@ class BlogService {
           "total_pages": totalPages == 0 ? 1 : totalPages,
           "current_page": page,
           "total_views": totalViews,
+          "total_authors": uniqueAuthors.length,
         },
       };
     } catch (e) {

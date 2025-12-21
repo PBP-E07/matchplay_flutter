@@ -106,8 +106,8 @@ class _EquipmentManagementScreenState extends State<EquipmentManagementScreen> {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => AdminFilterDialog(
-        currentMinPrice: _filterMinPrice,
-        currentMaxPrice: _filterMaxPrice,
+        currentMin: _filterMinPrice,
+        currentMax: _filterMaxPrice,
         categories: null, // Equipment tidak pakai kategori
       ),
     );
@@ -186,14 +186,24 @@ class _EquipmentManagementScreenState extends State<EquipmentManagementScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Stats: Tampilkan Total Qty alih-alih Avg Rating
+                // Stats
                 DashboardStats(
-                  totalData: _totalData,
-                  avgPrice: _avgPrice,
-                  avgRating: _totalQty.toDouble(),
+                  // Kartu 1: Equipments
                   totalLabel: "Total Equipments",
+                  icon1: Icons.sports_tennis,
+                  totalData: _totalData,
+
+                  // Kartu 2: Price
+                  avgPrice: _avgPrice,
                   avgPriceLabel: "Average Price/Hour",
+                  isCurrency: true,
+                  icon2: Icons.attach_money,
+
+                  // Kartu 3: Quatity
+                  avgRating: _totalQty.toDouble(),
                   avgRatingLabel: "Total Quantity",
+                  icon3: Icons.inventory_2,
+                  isCard3Int: true,
                 ),
 
                 const SizedBox(height: 32),

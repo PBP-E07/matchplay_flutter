@@ -40,9 +40,12 @@ class _BlogManagementScreenState extends State<BlogManagementScreen> {
 
   // Stats
   int _totalViews = 0;
+  int _totalAuthors = 0;
 
   // Filter
   String? _filterCategory;
+  int? _filterMinViews;
+  int? _filterMaxViews;
 
   // Categories for Filter Dialog
   final List<Map<String, String>> _filterCategories = [
@@ -71,6 +74,8 @@ class _BlogManagementScreenState extends State<BlogManagementScreen> {
         page: page,
         perPage: _perPage,
         category: _filterCategory,
+        minViews: _filterMinViews,
+        maxViews: _filterMaxViews,
       );
 
       if (!mounted) return;
@@ -82,6 +87,7 @@ class _BlogManagementScreenState extends State<BlogManagementScreen> {
         _totalPages = meta['total_pages'];
         _currentPage = meta['current_page'];
         _totalViews = meta['total_views'];
+        _totalAuthors = meta['total_authors'];
         _isLoading = false;
       });
     } catch (e) {
@@ -98,13 +104,18 @@ class _BlogManagementScreenState extends State<BlogManagementScreen> {
       context: context,
       builder: (context) => AdminFilterDialog(
         currentCategory: _filterCategory,
+        currentMin: _filterMinViews,
+        currentMax: _filterMaxViews,
         categories: _filterCategories,
+        rangeTitle: "Jumlah Views",
       ),
     );
 
     if (result != null) {
       setState(() {
         _filterCategory = result['category'];
+        _filterMinViews = result['min'];
+        _filterMaxViews = result['max'];
         _currentPage = 1;
       });
       _fetchData(page: 1);
@@ -187,12 +198,22 @@ class _BlogManagementScreenState extends State<BlogManagementScreen> {
 
                 // Stats Card
                 DashboardStats(
+                  // Kartu 1: Articles
+                  icon1: Icons.article,
                   totalData: _totalData,
-                  avgPrice: 0, // Tidak relevan untuk blog
-                  avgRating: _totalViews.toDouble(),
                   totalLabel: "Total Articles",
-                  avgPriceLabel: "-",
+
+                  // Kartu 2: Authors
+                  avgPrice: _totalAuthors.toDouble(),
+                  avgPriceLabel: "Total Authors",
+                  isCurrency: false,
+                  icon2: Icons.people,
+
+                  // Kartu 3: Views
+                  avgRating: _totalViews.toDouble(),
                   avgRatingLabel: "Total Views",
+                  icon3: Icons.visibility,
+                  isCard3Int: true,
                 ),
 
                 const SizedBox(height: 32),

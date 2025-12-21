@@ -205,6 +205,14 @@ class _BlogFormScreenState extends State<BlogFormScreen> {
                         labelText: "URL Gambar (Optional)",
                         border: OutlineInputBorder(),
                       ),
+                      validator: (value) {
+                        if (value != null && value.isNotEmpty) {
+                          if (!Uri.parse(value).isAbsolute) {
+                            return 'Format URL tidak valid';
+                          }
+                        }
+                        return null;
+                      },
                     ),
 
                     const SizedBox(height: 24),

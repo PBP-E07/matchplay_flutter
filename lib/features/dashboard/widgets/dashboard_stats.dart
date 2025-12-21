@@ -5,72 +5,81 @@ class DashboardStats extends StatelessWidget {
   final int totalData;
   final double avgPrice;
   final double avgRating;
+
+  // Labels
   final String totalLabel;
   final String avgPriceLabel;
   final String avgRatingLabel;
+
+  // Configuration
+  final bool isCurrency; // True = Pakai Rp, False = Angka biasa
+  final bool isCard3Int;
+  final IconData icon1; // Icon untuk kartu kiri
+  final IconData icon2; // Icon untuk kartu tengah
+  final IconData icon3; // Icon untuk kartu kanan
 
   const DashboardStats({
     super.key,
     required this.totalData,
     required this.avgPrice,
     required this.avgRating,
-    this.totalLabel = "Total Data",
+
+    this.totalLabel = "Total Fields",
     this.avgPriceLabel = "Average Price",
     this.avgRatingLabel = "Average Rating",
+
+    // Default values sesuai modul Field
+    this.isCurrency = true,
+    this.isCard3Int = false,
+
+    this.icon1 = Icons.stadium,
+    this.icon2 = Icons.attach_money,
+    this.icon3 = Icons.star,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Format mata uang
     final currencyFormat = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
       decimalDigits: 0,
     );
 
+    // Format nilai kartu ke-2 (Bisa Rp atau Angka biasa)
+    String card2Value = isCurrency
+        ? currencyFormat.format(avgPrice)
+        : avgPrice.toInt().toString(); // Hilangkan desimal jika bukan uang
+    String card3Value = avgRating.toStringAsFixed(isCard3Int ? 0 : 2);
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = constraints.maxWidth;
-
-        // Responsive logic
-        int columns;
-        if (width >= 1100) {
-          columns = 3; // Layar Besar: 3 Kartu sebaris
-        } else if (width >= 700) {
-          columns = 2; // Layar Sedang: 2 Kartu sebaris
-        } else {
-          columns = 1; // Layar Kecil: 1 Kartu sebaris
-        }
-
-        // Hitung lebar setiap kartu
-        // Rumus: (Total Lebar - (Total Spasi antar kartu)) / Jumlah Kolom
-        final double gap = 16.0;
-        final double cardWidth = (width - (gap * (columns - 1))) / columns;
-
-        return Wrap(
-          spacing: gap, // Spasi Horizontal
-          runSpacing: gap, // Spasi Vertikal (saat turun baris)
+        return Row(
           children: [
-            _buildStatCard(
-              title: totalLabel,
-              value: totalData.toString(),
-              valueColor: Colors.purple,
-              icon: Icons.stadium,
-              width: cardWidth,
+            Expanded(
+              child: _buildStatCard(
+                title: totalLabel,
+                value: totalData.toString(),
+                icon: icon1,
+                color: Colors.purple,
+              ),
             ),
-            _buildStatCard(
-              title: avgPriceLabel,
-              value: currencyFormat.format(avgPrice),
-              valueColor: Colors.green,
-              icon: Icons.attach_money,
-              width: cardWidth,
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildStatCard(
+                title: avgPriceLabel,
+                value: card2Value,
+                icon: icon2,
+                color: Colors.green,
+              ),
             ),
-            _buildStatCard(
-              title: avgRatingLabel,
-              value: avgRating.toString(),
-              valueColor: Colors.amber,
-              icon: Icons.star,
-              width: cardWidth,
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildStatCard(
+                title: avgRatingLabel,
+                value: card3Value,
+                icon: icon3,
+                color: Colors.orange,
+              ),
             ),
           ],
         );
@@ -81,51 +90,45 @@ class DashboardStats extends StatelessWidget {
   Widget _buildStatCard({
     required String title,
     required String value,
-    required Color valueColor,
     required IconData icon,
-    required double width,
+    required Color color,
   }) {
-    // SizedBox untuk memaksakan lebar kartu sesuai perhitungan
-    return SizedBox(
-      width: width,
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          // Shadow halus agar terlihat timbul
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(color: Colors.grey[600], fontSize: 20),
-                ),
-                Icon(icon, color: Colors.grey[300], size: 24),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              value,
-              style: TextStyle(
-                color: valueColor,
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: TextStyle(color: Colors.grey[600], fontSize: 14),
               ),
+              Icon(icon, color: color.withValues(alpha: 0.8), size: 24),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: color.withValues(alpha: 1),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

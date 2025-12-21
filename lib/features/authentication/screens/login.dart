@@ -4,6 +4,7 @@ import 'package:matchplay_flutter/features/home/screens/home_page.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:matchplay_flutter/config.dart';
+import 'package:matchplay_flutter/providers/user_provider.dart';
 
 void main() {
   runApp(const LoginApp());
@@ -113,11 +114,10 @@ class _LoginPageState extends State<LoginPage> {
                         String uname = response['username'];
                         bool isAdmin = response['is_staff'] ?? false;
                         if (context.mounted) {
+                          context.read<UserProvider>().setAdmin(isAdmin);
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => HomePage(isAdmin: isAdmin),
-                            ),
+                            MaterialPageRoute(builder: (context) => HomePage()),
                           );
                           ScaffoldMessenger.of(context)
                             ..hideCurrentSnackBar()

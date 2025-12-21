@@ -6,11 +6,10 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:matchplay_flutter/features/equipment/screens/equipment_list.dart';
 import 'package:matchplay_flutter/features/dashboard/screens/admin_dashboard_screen.dart';
+import 'package:matchplay_flutter/providers/user_provider.dart';
 
 class HomePage extends StatefulWidget {
-  final bool isAdmin;
-
-  const HomePage({super.key, this.isAdmin = false});
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -44,6 +43,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
+    final isAdmin = context.watch<UserProvider>().isAdmin;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -171,13 +171,11 @@ class _HomePageState extends State<HomePage> {
             _buildBottomNavItem(Icons.home, "Home", () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => HomePage(isAdmin: widget.isAdmin),
-                ),
+                MaterialPageRoute(builder: (context) => HomePage()),
               );
             }),
 
-            if (widget.isAdmin)
+            if (isAdmin)
               _buildBottomNavItem(Icons.dashboard, "Admin", () {
                 Navigator.push(
                   context,
