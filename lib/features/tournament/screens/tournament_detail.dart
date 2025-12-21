@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:matchplay_flutter/config.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/foundation.dart';
 import '../models/tournament.dart';
 import 'match_list.dart';
 import 'join_tournament_form.dart';
@@ -33,7 +33,7 @@ class _TournamentDetailPageState extends State<TournamentDetailPage> {
     BuildContext context,
     CookieRequest request,
   ) async {
-    String baseUrl = kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
+    String baseUrl = AppConfig.baseUrl;
     final url = '$baseUrl/tournament/api/delete/${widget.tournament.id}/';
 
     try {

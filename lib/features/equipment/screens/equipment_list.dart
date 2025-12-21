@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:matchplay_flutter/config.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:matchplay_flutter/features/equipment/models/equipment.dart';
@@ -15,6 +16,7 @@ class EquipmentPage extends StatefulWidget {
 }
 
 class _EquipmentPageState extends State<EquipmentPage> {
+  final String baseUrl = AppConfig.baseUrl;
   String _searchQuery = "";
   String _selectedCategory = "All";
 

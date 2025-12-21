@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter/foundation.dart';
+import 'package:matchplay_flutter/config.dart';
 import '../models/tournament.dart';
 
 class JoinTournamentPage extends StatefulWidget {
@@ -28,7 +28,7 @@ class _JoinTournamentPageState extends State<JoinTournamentPage> {
       _isLoading = true;
     });
 
-    String baseUrl = kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
+    String baseUrl = AppConfig.baseUrl;
 
     final url = Uri.parse(
       '$baseUrl/tournament/api/${widget.tournament.id}/join/',

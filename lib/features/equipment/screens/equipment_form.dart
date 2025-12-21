@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:matchplay_flutter/features/equipment/screens/equipment_list.dart';
+import 'package:matchplay_flutter/config.dart';
 import 'package:matchplay_flutter/features/equipment/models/equipment.dart';
 
 class EquipmentFormPage extends StatefulWidget {
@@ -94,9 +96,10 @@ class _EquipmentFormPageState extends State<EquipmentFormPage> {
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       // Tentukan endpoint: create atau edit
+                      String baseUrl = AppConfig.baseUrl;
                       String url = isEdit
-                          ? 'http://localhost:8000/equipment/edit-flutter/${widget.equipment!.pk}/'
-                          : 'http://localhost:8000/equipment/create-flutter/';
+                          ? '$baseUrl/equipment/edit-flutter/${widget.equipment!.pk}/'
+                          : '$baseUrl/equipment/create-flutter/';
 
                       final response = await request.post(
                         url,
