@@ -30,12 +30,15 @@ class CustomBottomNavBar extends StatelessWidget {
           page = const CreateMatchForm();
           break;
         case 2:
-          page = const AdminDashboardScreen();
+          page = const TournamentListPage();
           break;
         case 3:
-          page = const EquipmentPage();
+          page = const AdminDashboardScreen();
           break;
         case 4:
+          page = const EquipmentPage();
+          break;
+        case 5:
           page = const BlogEntryListPage();
           break;
         default:
@@ -48,9 +51,12 @@ class CustomBottomNavBar extends StatelessWidget {
           page = const HomePage();
           break;
         case 1:
-          page = const EquipmentPage();
+          page = const TournamentListPage();
           break;
         case 2:
+          page = const EquipmentPage();
+          break;
+        case 3:
           page = const BlogEntryListPage();
           break;
         default:
