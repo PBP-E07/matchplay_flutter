@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:matchplay_flutter/features/authentication/screens/login.dart';
+import 'package:matchplay_flutter/features/blog/screens/blog_entry_list.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 
@@ -19,7 +20,7 @@ class MyApp extends StatelessWidget {
         return request;
       },
       child: MaterialApp(
-        title: 'Football news',
+        title: 'Matchplay',
         theme: ThemeData(
           // This is the theme of your application.
           //

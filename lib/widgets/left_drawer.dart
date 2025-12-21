@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:matchplay_flutter/features/blog/screens/menu.dart';
+import '../features/home/screens/home_page.dart';
+import '../features/blog/screens/blog_entry_list.dart';
 import 'package:matchplay_flutter/features/dashboard/screens/admin_dashboard_screen.dart';
 import 'package:matchplay_flutter/features/equipment/screens/equipment_list.dart';
 
@@ -45,7 +46,7 @@ class LeftDrawer extends StatelessWidget {
             onTap: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const MyHomePage()),
+                MaterialPageRoute(builder: (context) => const HomePage()),
               );
             },
           ),
@@ -64,7 +65,7 @@ class LeftDrawer extends StatelessWidget {
             },
           ),
 
-          // Daftar Equipment
+          // Equipment
           ListTile(
             leading: const Icon(Icons.sports_tennis),
             title: const Text('Daftar Equipment'),
@@ -72,6 +73,20 @@ class LeftDrawer extends StatelessWidget {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const EquipmentPage()),
+              );
+            },
+          ),
+
+          // Blog
+          ListTile(
+            leading: const Icon(Icons.article),
+            title: const Text('Blog'),
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const BlogEntryListPage(),
+                ),
               );
             },
           ),
