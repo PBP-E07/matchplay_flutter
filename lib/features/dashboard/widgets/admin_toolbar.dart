@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 
-class FieldToolbar extends StatelessWidget {
-  // Action Callbacks
+class AdminToolbar extends StatelessWidget {
   final VoidCallback onAddPressed;
   final VoidCallback onFilterPressed;
 
-  // Pagination Info
   final int totalData;
   final int currentPage;
   final int perPage;
   final List<int> pageSizeList;
   final Function(int) onPerPageChanged;
 
-  const FieldToolbar({
+  final String addButtonLabel;
+
+  const AdminToolbar({
     super.key,
     required this.onAddPressed,
     required this.onFilterPressed,
@@ -22,6 +22,7 @@ class FieldToolbar extends StatelessWidget {
     required this.perPage,
     required this.pageSizeList,
     required this.onPerPageChanged,
+    this.addButtonLabel = "Tambah Data",
   });
 
   @override
@@ -37,7 +38,6 @@ class FieldToolbar extends StatelessWidget {
         alignment: WrapAlignment.spaceBetween,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          // GRUP KIRI: Tombol Tambah & Filter
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -51,14 +51,12 @@ class FieldToolbar extends StatelessWidget {
                 ),
                 onPressed: onAddPressed,
                 icon: const Icon(Icons.add, color: Colors.white),
-                label: const Text(
-                  "Tambah Lapangan",
-                  style: TextStyle(color: Colors.white),
+                label: Text(
+                  addButtonLabel,
+                  style: const TextStyle(color: Colors.white),
                 ),
               ),
-
               const SizedBox(width: 12),
-
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF4285F4),
@@ -76,8 +74,6 @@ class FieldToolbar extends StatelessWidget {
               ),
             ],
           ),
-
-          // GRUP KANAN: Pagination Info & Dropdown
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -107,7 +103,7 @@ class FieldToolbar extends StatelessWidget {
               ),
               const SizedBox(width: 16),
               Text(
-                "Showing $start-$end of $totalData fields",
+                "Showing $start-$end of $totalData items",
                 style: TextStyle(color: Colors.grey[600]),
               ),
             ],

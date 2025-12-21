@@ -1,4 +1,9 @@
+// Package Umum
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+
+// Fields
 import '../../../fields/models/field.dart';
 import '../../../fields/models/facility.dart';
 import '../../../fields/services/field_service.dart';
@@ -55,10 +60,11 @@ class _FieldFormScreenState extends State<FieldFormScreen> {
 
   Future<void> _initialLoad() async {
     setState(() => _isLoading = true);
+    final request = context.read<CookieRequest>();
 
     // 1. Fetch opsi fasilitas dari backend
     try {
-      final facilities = await _service.fetchFacilities();
+      final facilities = await _service.fetchFacilities(request);
       setState(() {
         _availableFacilities = facilities;
       });
@@ -111,6 +117,7 @@ class _FieldFormScreenState extends State<FieldFormScreen> {
     }
 
     setState(() => _isLoading = true);
+    final request = context.read<CookieRequest>();
 
     // Mempersiapkan Data JSON
     // Backend mengharapkan 'facilities' berupa List ID [1, 2, 3]
@@ -129,10 +136,10 @@ class _FieldFormScreenState extends State<FieldFormScreen> {
     try {
       if (widget.field == null) {
         // Create Mode
-        success = await _service.createField(data);
+        success = await _service.createField(request, data);
       } else {
         // Edit Mode
-        success = await _service.updateField(widget.field!.id, data);
+        success = await _service.updateField(request, widget.field!.id, data);
       }
 
       if (mounted) {
@@ -213,8 +220,16 @@ class _FieldFormScreenState extends State<FieldFormScreen> {
                               border: OutlineInputBorder(),
                             ),
                             keyboardType: TextInputType.number,
-                            validator: (value) =>
-                                value!.isEmpty ? 'Wajib diisi' : null,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Wajib diisi';
+                              }
+                              // Cek apakah value valid sebagai integer
+                              if (int.tryParse(value) == null) {
+                                return 'Harus berupa angka bulat valid';
+                              }
+                              return null;
+                            },
                           ),
                         ),
                         const SizedBox(width: 16),

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:matchplay_flutter/widgets/left_drawer.dart';
 
+// Management Screen
 import 'fields/field_management_screen.dart';
-// import 'equipments/equipment_management_screen.dart';
+import 'equipment/equipment_management_screen.dart';
 // import 'blogs/blog_management_screen.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
@@ -43,7 +44,7 @@ class AdminDashboardScreen extends StatelessWidget {
             FieldManagementScreen(),
 
             // Tab 2: Modul Equipment
-            Center(child: Text("Modul Equipment (Coming Soon)")),
+            EquipmentManagementScreen(),
 
             // Tab 3: Modul Blog
             Center(child: Text("Modul Blog (Coming Soon)")),

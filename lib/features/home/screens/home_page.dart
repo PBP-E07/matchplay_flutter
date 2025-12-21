@@ -6,9 +6,12 @@ import 'package:matchplay_flutter/features/matches/screens/create_match_form.dar
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:matchplay_flutter/features/equipment/screens/equipment_list.dart';
+import 'package:matchplay_flutter/features/dashboard/screens/admin_dashboard_screen.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final bool isAdmin;
+
+  const HomePage({super.key, this.isAdmin = false});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -169,10 +172,14 @@ class _HomePageState extends State<HomePage> {
             _buildBottomNavItem(Icons.home, "Home", () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const HomePage()),
+                MaterialPageRoute(
+                  builder: (context) => HomePage(isAdmin: widget.isAdmin),
+                ),
               );
             }),
-            _buildBottomNavItem(Icons.create, "Matchmake", () {
+
+            if (widget.isAdmin)
+              _buildBottomNavItem(Icons.create, "Matchmake", () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -180,13 +187,22 @@ class _HomePageState extends State<HomePage> {
                 ),
               );
             }),
-            _buildBottomNavItem(Icons.emoji_events, "Admin", () {}),
+            _buildBottomNavItem(Icons.dashboard, "Admin", () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AdminDashboardScreen(),
+                  ),
+                );
+              }),
+
             _buildBottomNavItem(Icons.shopping_cart, "Equip", () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const EquipmentPage()),
               );
             }),
+
             _buildBottomNavItem(Icons.article, "Blog", () {
               Navigator.push(
                 context,

@@ -3,6 +3,7 @@ import 'package:matchplay_flutter/features/authentication/screens/register.dart'
 import 'package:matchplay_flutter/features/home/screens/home_page.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:matchplay_flutter/config.dart';
 
 void main() {
   runApp(const LoginApp());
@@ -103,17 +104,20 @@ class _LoginPageState extends State<LoginPage> {
                       // To connect Android emulator with Django on localhost, use URL http://10.0.2.2/
                       // If you using chrome,  use URL http://localhost:8000
                       final response = await request.login(
-                        "http://localhost:8000/api/login/",
+                        "${AppConfig.baseUrl}/api/login/",
                         {'username': username, 'password': password},
                       );
 
                       if (request.loggedIn) {
                         String message = response['message'];
                         String uname = response['username'];
+                        bool isAdmin = response['is_staff'] ?? false;
                         if (context.mounted) {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => HomePage()),
+                            MaterialPageRoute(
+                              builder: (context) => HomePage(isAdmin: isAdmin),
+                            ),
                           );
                           ScaffoldMessenger.of(context)
                             ..hideCurrentSnackBar()
