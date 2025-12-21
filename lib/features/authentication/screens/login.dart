@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:matchplay_flutter/features/authentication/screens/register.dart';
-import '../../home/screens/home_page.dart';
+import 'package:matchplay_flutter/features/home/screens/home_page.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 
