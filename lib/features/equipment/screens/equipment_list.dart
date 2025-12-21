@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:matchplay_flutter/features/equipment/models/equipment.dart';
-import 'package:matchplay_flutter/widgets/left_drawer.dart';
+import 'package:matchplay_flutter/widgets/custom_bottom_navbar.dart';
+import 'dart:async'; // Buat Timer hitung mundur
 
 class EquipmentPage extends StatefulWidget {
   const EquipmentPage({super.key});
@@ -12,15 +13,44 @@ class EquipmentPage extends StatefulWidget {
 }
 
 class _EquipmentPageState extends State<EquipmentPage> {
-  // Gunakan 127.0.0.1 untuk Chrome, atau 10.0.2.2 untuk Android Emulator
-  final String baseUrl = 'http://127.0.0.1:8000';
+  final String baseUrl =
+      'http://localhost:8000'; // Pake 10.0.2.2 kalau emulator
+  String _searchQuery = "";
+  String _selectedCategory = "All";
+  int _currentIndex = 1;
+
+  // Slot jam per 1 jam sesuai request lo
+  final List<String> _timeSlots = [
+    "06:00-07:00",
+    "07:00-08:00",
+    "08:00-09:00",
+    "09:00-10:00",
+    "10:00-11:00",
+    "11:00-12:00",
+    "13:00-14:00",
+    "14:00-15:00",
+    "15:00-16:00",
+    "16:00-17:00",
+    "17:00-18:00",
+    "18:00-19:00",
+    "19:00-20:00",
+    "20:00-21:00",
+    "21:00-22:00",
+  ];
 
   Future<List<Equipment>> fetchEquipment(CookieRequest request) async {
     var response = await request.get('$baseUrl/equipment/json/');
     List<Equipment> listEquipment = [];
     for (var d in response) {
       if (d != null) {
-        listEquipment.add(Equipment.fromJson(d));
+        Equipment eq = Equipment.fromJson(d);
+        String name = eq.fields.name.toLowerCase();
+        if (name.contains(_searchQuery.toLowerCase())) {
+          if (_selectedCategory == "All" ||
+              name.contains(_selectedCategory.toLowerCase())) {
+            listEquipment.add(eq);
+          }
+        }
       }
     }
     return listEquipment;
@@ -29,6 +59,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
   @override
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
+    final bool isAdmin = request.jsonData['is_admin'] ?? false;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -39,51 +70,19 @@ class _EquipmentPageState extends State<EquipmentPage> {
         ),
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        automaticallyImplyLeading: false,
       ),
-      drawer: const LeftDrawer(),
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Search Bar
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: "Search equipment...",
-                  prefixIcon: const Icon(Icons.search),
-                  fillColor: Colors.grey[100],
-                  filled: true,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-            ),
-
-            // 2. Filter Kategori (Padel, Golf, Volley)
-            _buildCategorySection(),
-
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
-              child: Text(
-                "Newest Arrival",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-
-            // 3. Grid View for Equipment
+            _buildSearchAndFilter(),
             FutureBuilder(
               future: fetchEquipment(request),
               builder: (context, AsyncSnapshot snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
+                if (snapshot.connectionState == ConnectionState.waiting)
                   return const Center(child: CircularProgressIndicator());
-                }
-                if (!snapshot.hasData || snapshot.data.isEmpty) {
-                  return const Center(child: Text("Belum ada equipment."));
-                }
+                if (!snapshot.hasData || snapshot.data.isEmpty)
+                  return const Center(child: Text("No equipment found."));
 
                 return GridView.builder(
                   shrinkWrap: true,
@@ -93,173 +92,46 @@ class _EquipmentPageState extends State<EquipmentPage> {
                     crossAxisCount: 2,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
-                    childAspectRatio: 0.68, // Agar card proporsional
+                    childAspectRatio: 0.62,
                   ),
                   itemCount: snapshot.data!.length,
-                  itemBuilder: (context, index) {
-                    final item = snapshot.data![index];
-                    return _buildProductCard(item, request);
-                  },
+                  itemBuilder: (context, index) => _buildProductCard(
+                    snapshot.data![index],
+                    request,
+                    isAdmin,
+                  ),
                 );
               },
             ),
+            const SizedBox(height: 100),
           ],
         ),
       ),
-    );
-  }
-
-  // --- WIDGET HELPERS ---
-
-  Widget _buildCategorySection() {
-    List<String> categories = ["Padel", "Golf", "Volley"];
-    return SizedBox(
-      height: 40,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: categories.length,
-        itemBuilder: (context, index) {
-          bool isFirst = index == 0;
-          return Container(
-            margin: const EdgeInsets.only(right: 8),
-            child: Chip(
-              label: Text(
-                categories[index],
-                style: TextStyle(color: isFirst ? Colors.white : Colors.black),
+      floatingActionButton: isAdmin
+          ? FloatingActionButton.extended(
+              backgroundColor: const Color(0xFF00BFA6),
+              label: const Text(
+                "Tambah Alat",
+                style: TextStyle(color: Colors.white),
               ),
-              backgroundColor: isFirst
-                  ? const Color(0xFF86EFAC)
-                  : Colors.grey[200],
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-            ),
-          );
-        },
+              icon: const Icon(Icons.add, color: Colors.white),
+              onPressed: () {},
+            )
+          : null,
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() {
+          _currentIndex = index;
+        }),
       ),
     );
   }
 
-  Widget _buildProductCard(Equipment item, CookieRequest request) {
-    // FIX GAMBAR: Logic biar Unsplash & Lokal muncul semua
-    String imageUrl = item.fields.image ?? "";
-    if (imageUrl.startsWith('http')) {
-      imageUrl = imageUrl;
-    } else if (imageUrl.isNotEmpty) {
-      imageUrl = "$baseUrl/media/$imageUrl";
-    } else {
-      imageUrl = "https://via.placeholder.com/150";
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9F9F9),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-              ),
-              child: Image.network(
-                imageUrl,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    const Icon(Icons.broken_image),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.fields.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
-                ),
-                Text(
-                  "Rp ${item.fields.pricePerHour}",
-                  style: const TextStyle(
-                    color: Color(0xFF10B981),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Tombol Detail (Ikon Info)
-                    GestureDetector(
-                      onTap: () => _showDetailModal(item),
-                      child: const Icon(
-                        Icons.info_outline,
-                        size: 22,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    // Tombol Sewa
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF10B981),
-                        minimumSize: const Size(65, 30),
-                        padding: EdgeInsets.zero,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onPressed: () => _showBookingBottomSheet(item, request),
-                      child: const Text(
-                        "Sewa",
-                        style: TextStyle(fontSize: 11, color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- MODAL & LOGIC SEWA ---
-
-  void _showDetailModal(Equipment item) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(item.fields.name),
-        content: Text(item.fields.description),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Tutup"),
-          ),
-        ],
-      ),
-    );
-  }
-
+  // --- MODAL SEWA ---
   void _showBookingBottomSheet(Equipment item, CookieRequest request) {
     DateTime? selectedDate;
-    int quantity = 1; // Default jumlah sewa
+    String? selectedTime;
+    int quantity = 1;
 
     showModalBottomSheet(
       context: context,
@@ -268,7 +140,6 @@ class _EquipmentPageState extends State<EquipmentPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        // Pake StatefulBuilder biar UI di dalam modal bisa berubah pas ganti tanggal/jumlah
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
             return Padding(
@@ -288,9 +159,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 20),
-
-                  // --- 1. PILIH TANGGAL ---
+                  const SizedBox(height: 15),
                   ListTile(
                     leading: const Icon(
                       Icons.calendar_today,
@@ -301,32 +170,52 @@ class _EquipmentPageState extends State<EquipmentPage> {
                           ? "Pilih Tanggal"
                           : "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}",
                     ),
-                    trailing: const Icon(Icons.chevron_right),
                     onTap: () async {
-                      final DateTime? picked = await showDatePicker(
+                      final picked = await showDatePicker(
                         context: context,
                         initialDate: DateTime.now(),
                         firstDate: DateTime.now(),
                         lastDate: DateTime.now().add(const Duration(days: 30)),
                       );
-                      if (picked != null) {
-                        setModalState(
-                          () => selectedDate = picked,
-                        ); // Update modal UI
-                      }
+                      if (picked != null)
+                        setModalState(() => selectedDate = picked);
                     },
                   ),
-
+                  const Text(
+                    "Pilih Jam (1 Jam):",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 10),
-
-                  // --- 2. JUMLAH SEWA ---
+                  SizedBox(
+                    height: 120,
+                    child: SingleChildScrollView(
+                      child: Wrap(
+                        spacing: 8,
+                        children: _timeSlots.map((time) {
+                          bool isSelected = selectedTime == time;
+                          return ChoiceChip(
+                            label: Text(
+                              time,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isSelected ? Colors.white : Colors.black,
+                              ),
+                            ),
+                            selected: isSelected,
+                            selectedColor: const Color(0xFF00BFA6),
+                            onSelected: (selected) => setModalState(
+                              () => selectedTime = selected ? time : null,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        "Jumlah Sewa:",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      const Text("Jumlah Sewa:"),
                       Row(
                         children: [
                           IconButton(
@@ -337,7 +226,10 @@ class _EquipmentPageState extends State<EquipmentPage> {
                           ),
                           Text(
                             "$quantity",
-                            style: const TextStyle(fontSize: 16),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           IconButton(
                             icon: const Icon(Icons.add_circle_outline),
@@ -349,26 +241,23 @@ class _EquipmentPageState extends State<EquipmentPage> {
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 20),
-
-                  // --- 3. TOMBOL LANJUT ---
+                  const SizedBox(height: 15),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF10B981),
                       minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
                     ),
-                    onPressed: selectedDate == null
+                    onPressed: (selectedDate == null || selectedTime == null)
                         ? null
                         : () {
-                            // Kirim data ke Django lo (/equipment/book/)
-                            print(
-                              "Booking: ${item.fields.name}, Qty: $quantity, Date: $selectedDate",
-                            );
                             Navigator.pop(context);
+                            _showPaymentModal(
+                              item,
+                              request,
+                              selectedDate!,
+                              selectedTime!,
+                              quantity,
+                            );
                           },
                     child: const Text(
                       "Lanjut ke Pembayaran",
@@ -386,4 +275,280 @@ class _EquipmentPageState extends State<EquipmentPage> {
       },
     );
   }
+
+  // --- MODAL PEMBAYARAN QRIS (FIX) ---
+  void _showPaymentModal(
+    Equipment item,
+    CookieRequest request,
+    DateTime date,
+    String slot,
+    int qty,
+  ) {
+    int startSeconds = 300; // 5 Menit timer
+    Timer? countdownTimer;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setPaymentState) {
+            countdownTimer ??= Timer.periodic(const Duration(seconds: 1), (
+              timer,
+            ) {
+              if (startSeconds > 0) {
+                setPaymentState(() => startSeconds--);
+              } else {
+                timer.cancel();
+                Navigator.pop(context);
+              }
+            });
+
+            String minutes = (startSeconds ~/ 60).toString().padLeft(2, '0');
+            String seconds = (startSeconds % 60).toString().padLeft(2, '0');
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: const Center(
+                child: Text(
+                  "Pembayaran QRIS",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "Segera bayar dalam $minutes:$seconds",
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  // PNG GENERATOR AGAR GAMBAR MUNCUL
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: Image.network(
+                      "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=MatchPlayPayment",
+                      height: 180,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.broken_image, size: 50),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  Text(
+                    "Total: Rp ${double.parse(item.fields.pricePerHour) * qty}",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF10B981),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                // Di dalam AlertDialog -> actions
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF10B981),
+                    ),
+                    onPressed: () async {
+                      countdownTimer?.cancel();
+                      
+                      // 1. LANGSUNG TUTUP POP-UP (Sesuai request lo, Boy)
+                      Navigator.pop(context); 
+
+                      try {
+                        // 2. JALANKAN PROSES BOOKING DI BACKGROUND
+                        final response = await request.post('$baseUrl/equipment/book/', {
+                          'eq_id': item.pk.toString(),
+                          'date': "${date.year}-${date.month}-${date.day}",
+                          'slot': slot,
+                          'quantity': qty.toString(),
+                        });
+
+                        if (response['status'] == 'success') {
+                          // 3. MUNCULIN NOTIFIKASI BERHASIL
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Booking Berhasil!"), backgroundColor: Colors.green),
+                          );
+                          setState(() {}); // Refresh list biar stok berkurang
+                        } else {
+                          // Notif kalau gagal (misal stok habis di detik terakhir)
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Gagal: ${response['message']}")),
+                          );
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Terjadi kesalahan koneksi!")),
+                        );
+                      }
+                    },
+                    child: const Text(
+                      "Konfirmasi Telah Bayar",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    ).then((_) => countdownTimer?.cancel());
+  }
+
+  // --- WIDGET LAINNYA ---
+  Widget _buildSearchAndFilter() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: TextField(
+            onChanged: (v) => setState(() => _searchQuery = v),
+            decoration: InputDecoration(
+              hintText: "Search...",
+              prefixIcon: const Icon(Icons.search),
+              fillColor: Colors.grey[100],
+              filled: true,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 40,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: [
+              "All",
+              "Padel",
+              "Golf",
+              "Volley",
+              "Bola",
+              "Basket",
+            ].length,
+            itemBuilder: (context, i) {
+              String cat = [
+                "All",
+                "Padel",
+                "Golf",
+                "Volley",
+                "Bola",
+                "Basket",
+              ][i];
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ChoiceChip(
+                  label: Text(cat),
+                  selected: _selectedCategory == cat,
+                  onSelected: (s) =>
+                      setState(() => _selectedCategory = s ? cat : "All"),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProductCard(
+    Equipment item,
+    CookieRequest request,
+    bool isAdmin,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9F9F9),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
+              child: Image.network(
+                _getImageUrl(item.fields.image),
+                fit: BoxFit.cover,
+                width: double.infinity,
+                errorBuilder: (c, e, s) => const Icon(Icons.broken_image),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.fields.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  "Stock: ${item.fields.quantity} | Rp ${item.fields.pricePerHour}",
+                  style: const TextStyle(
+                    color: Color(0xFF10B981),
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (isAdmin) ...[
+                      const Icon(Icons.edit, size: 20, color: Colors.blue),
+                      const Icon(Icons.delete, size: 20, color: Colors.red),
+                    ] else ...[
+                      const Icon(
+                        Icons.info_outline,
+                        size: 22,
+                        color: Colors.grey,
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF10B981),
+                          minimumSize: const Size(60, 30),
+                          padding: EdgeInsets.zero,
+                        ),
+                        onPressed: () => _showBookingBottomSheet(item, request),
+                        child: const Text(
+                          "Sewa",
+                          style: TextStyle(fontSize: 10, color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getImageUrl(String? p) => (p == null || p.isEmpty)
+      ? "https://via.placeholder.com/150"
+      : (p.startsWith('http') ? p : "$baseUrl/media/$p");
 }
