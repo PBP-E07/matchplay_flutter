@@ -160,14 +160,14 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
                     borderRadius: BorderRadius.circular(16),
                     child: (blog.thumbnail != null && blog.thumbnail!.isNotEmpty)
                         ? Image.network(
-                            'http://localhost:8000/blog/proxy-image/?url=${Uri.encodeComponent(blog.thumbnail!)}',
-                            fit: BoxFit.cover,
-                            errorBuilder: (c, o, s) => const Center(child: Icon(Icons.error)),
-                          )
+                      'http://localhost:8000/blog/proxy-image/?url=${Uri.encodeComponent(blog.thumbnail!)}',
+                      fit: BoxFit.cover,
+                      errorBuilder: (c, o, s) => const Center(child: Icon(Icons.error)),
+                    )
                         : Container(
-                            color: Colors.grey[300],
-                            child: const Center(child: Icon(Icons.photo, color: Colors.grey)),
-                          ),
+                      color: Colors.grey[300],
+                      child: const Center(child: Icon(Icons.photo, color: Colors.grey)),
+                    ),
                   ),
                 ),
               );

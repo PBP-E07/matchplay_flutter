@@ -65,10 +65,14 @@ class _EquipmentPageState extends State<EquipmentPage> {
                   final item = snapshot.data![index];
                   // Rakit URL Gambar (Base URL Django + Path Gambar)
                   // Ganti 127.0.0.1 dengan 10.0.2.2 kalau pake Emulator
-                  String imageUrl = 'http://127.0.0.1:8000/media/${item.fields.image}';
+                  String imageUrl =
+                      'http://127.0.0.1:8000/media/${item.fields.image}';
 
                   return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(20.0),
                       child: Column(
@@ -76,16 +80,16 @@ class _EquipmentPageState extends State<EquipmentPage> {
                         children: [
                           // Tampilkan Gambar (Kalau ada)
                           if (item.fields.image.isNotEmpty)
-                             Image.network(
-                               imageUrl, 
-                               height: 150, 
-                               width: double.infinity, 
-                               fit: BoxFit.cover,
-                               errorBuilder: (ctx, error, stackTrace) => 
-                                 const Icon(Icons.broken_image, size: 50),
-                             ),
+                            Image.network(
+                              imageUrl,
+                              height: 150,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (ctx, error, stackTrace) =>
+                                  const Icon(Icons.broken_image, size: 50),
+                            ),
                           const SizedBox(height: 10),
-                          
+
                           Text(
                             item.fields.name,
                             style: const TextStyle(
