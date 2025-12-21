@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:matchplay_flutter/features/blog/models/blog_entry.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:matchplay_flutter/config.dart';
 
 class BlogFormPage extends StatefulWidget {
   final Blog? blog;
@@ -22,6 +23,8 @@ class _BlogFormPageState extends State<BlogFormPage> {
   late TextEditingController _contentController;
   late TextEditingController _thumbnailController;
   String? _selectedCategory;
+
+  static const String blogUrl = "${AppConfig.baseUrl}/blog/";
 
   final List<Map<String, String>> _categories = [
     {'value': 'padel', 'display': 'Padel'},
@@ -170,8 +173,8 @@ class _BlogFormPageState extends State<BlogFormPage> {
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
                         final url = _isEditing
-                            ? "http://localhost:8000/blog/edit-flutter/${widget.blog!.id}/"
-                            : "http://localhost:8000/blog/create-flutter/";
+                            ? "${blogUrl}edit-flutter/${widget.blog!.id}/"
+                            : "${blogUrl}create-flutter/";
                         
                         final response = await request.postJson(
                             url,

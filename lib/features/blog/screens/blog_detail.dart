@@ -1,6 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:matchplay_flutter/features/blog/models/blog_entry.dart';
+import 'package:matchplay_flutter/config.dart';
 
 class BlogDetailPage extends StatelessWidget {
   final Blog blog;
@@ -17,6 +17,8 @@ class BlogDetailPage extends StatelessWidget {
     return '${dateInGmtPlus7.day} ${months[dateInGmtPlus7.month - 1]} ${dateInGmtPlus7.year}';
   }
 
+  static const String blogUrl = "${AppConfig.baseUrl}/blog/";
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,7 +33,7 @@ class BlogDetailPage extends StatelessWidget {
           children: [
             if (blog.thumbnail != null && blog.thumbnail!.isNotEmpty)
               Image.network(
-                'http://localhost:8000/blog/proxy-image/?url=${Uri.encodeComponent(blog.thumbnail!)}',
+                '${blogUrl}proxy-image/?url=${Uri.encodeComponent(blog.thumbnail!)}',
                 width: double.infinity,
                 height: 250,
                 fit: BoxFit.cover,
