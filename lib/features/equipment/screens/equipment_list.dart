@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:matchplay_flutter/features/equipment/models/equipment.dart';
 import 'package:matchplay_flutter/widgets/custom_bottom_navbar.dart';
 import 'package:matchplay_flutter/features/equipment/screens/equipment_form.dart';
-import 'package:matchplay_flutter/config.dart';
 import 'dart:async';
 
 class EquipmentPage extends StatefulWidget {
@@ -86,12 +85,10 @@ class _EquipmentPageState extends State<EquipmentPage> {
     final request = context.watch<CookieRequest>();
 
     // Menjaga status Admin agar tidak hilang saat Fetch Data
-    if (request.jsonData is Map) {
-      if (request.jsonData['is_admin'] == true ||
-          request.jsonData['is_staff'] == true ||
-          request.jsonData['username'] == 'admin2') {
-        _persistedIsAdmin = true;
-      }
+    if (request.jsonData['is_admin'] == true ||
+        request.jsonData['is_staff'] == true ||
+        request.jsonData['username'] == 'admin2') {
+      _persistedIsAdmin = true;
     }
     final bool isAdmin = _persistedIsAdmin ?? false;
 
