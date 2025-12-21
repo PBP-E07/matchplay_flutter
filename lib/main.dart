@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:matchplay_flutter/features/blog/screens/blog_entry_list.dart';
+import 'package:matchplay_flutter/features/blog/screens/menu.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
 import 'package:matchplay_flutter/widgets/left_drawer.dart';
 
 void main() {
@@ -58,6 +60,7 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 20),
           ],
         ),
+        home: const MyHomePage(),
       ),
     );
   }
