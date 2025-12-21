@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:matchplay_flutter/features/equipment/screens/equipment_list.dart';
-import 'package:matchplay_flutter/widgets/left_drawer.dart';
 
 class EquipmentFormPage extends StatefulWidget {
   const EquipmentFormPage({super.key});
