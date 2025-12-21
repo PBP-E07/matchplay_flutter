@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:matchplay_flutter/widgets/custom_bottom_navbar.dart';
 import 'package:matchplay_flutter/widgets/left_drawer.dart';
 
 // Management Screen
@@ -49,6 +50,11 @@ class AdminDashboardScreen extends StatelessWidget {
             // Tab 3: Modul Blog
             BlogManagementScreen(),
           ],
+        ),
+
+        bottomNavigationBar: const CustomBottomNavBar(
+          currentIndex: 2, // Index for Admin dashboard
+          isAdmin: true,
         ),
       ),
     );
