@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:matchplay_flutter/features/equipment/models/equipment.dart';
 import 'package:matchplay_flutter/widgets/custom_bottom_navbar.dart';
 import 'package:matchplay_flutter/features/equipment/screens/equipment_form.dart';
+import 'package:matchplay_flutter/config.dart';
 import 'dart:async';
 
 class EquipmentPage extends StatefulWidget {
@@ -46,7 +47,8 @@ class _EquipmentPageState extends State<EquipmentPage> {
   ];
 
   Future<List<Equipment>> fetchEquipment(CookieRequest request) async {
-    var response = await request.get('$baseUrl/equipment/json/');
+    // Menggunakan AppConfig.baseUrl
+    var response = await request.get('${AppConfig.baseUrl}/equipment/json/');
     List<Equipment> listEquipment = [];
     for (var d in response) {
       if (d != null) {
@@ -63,8 +65,9 @@ class _EquipmentPageState extends State<EquipmentPage> {
   }
 
   Future<void> _deleteEquipment(CookieRequest request, int pk) async {
+    // Menggunakan AppConfig.baseUrl
     final response = await request.post(
-      '$baseUrl/equipment/delete-flutter/$pk/',
+      '${AppConfig.baseUrl}/equipment/delete-flutter/$pk/',
       {},
     );
     if (response['status'] == 'success') {
@@ -82,7 +85,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
 
-    // Amankan status Admin: jsonData hanya berisi data login saat awal login
+    // Menjaga status Admin agar tidak hilang saat Fetch Data
     if (request.jsonData is Map) {
       if (request.jsonData['is_admin'] == true ||
           request.jsonData['is_staff'] == true ||
@@ -142,7 +145,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
           ],
         ),
       ),
-      // --- Tombol Tambah Alat (Khusus Admin) ---
+      // --- Tombol Tambah Alat (Hanya untuk Admin) ---
       floatingActionButton: isAdmin
           ? FloatingActionButton.extended(
               backgroundColor: const Color(0xFF00BFA6),
@@ -208,7 +211,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
     );
   }
 
-  // --- Widget Helper: Card Produk (Fitur Admin muncul di sini) ---
+  // --- Widget Helper: Card Produk (Fitur Edit & Delete Admin) ---
   Widget _buildProductCard(
     Equipment item,
     CookieRequest request,
@@ -257,8 +260,8 @@ class _EquipmentPageState extends State<EquipmentPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // --- Fitur Edit & Hapus (Muncul jika isAdmin == true) ---
                     if (isAdmin) ...[
+                      // Tombol Edit & Delete Admin
                       IconButton(
                         icon: const Icon(
                           Icons.edit,
@@ -282,7 +285,6 @@ class _EquipmentPageState extends State<EquipmentPage> {
                         onPressed: () => _showDeleteConfirmation(request, item),
                       ),
                     ] else ...[
-                      // Fitur User Biasa (Info & Sewa)
                       GestureDetector(
                         onTap: () => _showDetailModal(item),
                         child: const Icon(
@@ -314,7 +316,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
     );
   }
 
-  // --- Fungsi Modals (Booking, Payment, Detail, Delete Confirmation) ---
+  // --- Fungsi Modals (Booking, Payment, Detail) ---
 
   void _showBookingBottomSheet(Equipment item, CookieRequest request) {
     DateTime? selectedDate;
@@ -518,8 +520,9 @@ class _EquipmentPageState extends State<EquipmentPage> {
                   onPressed: () async {
                     countdownTimer?.cancel();
                     Navigator.pop(context);
+                    // Menggunakan AppConfig.baseUrl
                     final response = await request.post(
-                      '$baseUrl/equipment/book/',
+                      '${AppConfig.baseUrl}/equipment/book/',
                       {
                         'eq_id': item.pk.toString(),
                         'date':
@@ -557,9 +560,11 @@ class _EquipmentPageState extends State<EquipmentPage> {
   }
 
   // --- Utilities ---
+
+  // Menggunakan AppConfig.baseUrl
   String _getImageUrl(String? p) => (p == null || p.isEmpty)
       ? "https://via.placeholder.com/150"
-      : (p.startsWith('http') ? p : "$baseUrl/media/$p");
+      : (p.startsWith('http') ? p : "${AppConfig.baseUrl}/media/$p");
 
   void _showDeleteConfirmation(CookieRequest r, Equipment i) {
     showDialog(
