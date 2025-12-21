@@ -1,11 +1,10 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:matchplay_flutter/features/blog/models/blog_entry.dart';
 import 'package:matchplay_flutter/features/blog/screens/blog_detail.dart';
-import 'package:matchplay_flutter/features/blog/screens/blog_form.dart';
 import 'package:matchplay_flutter/features/blog/widgets/blog_entry_card.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:matchplay_flutter/config.dart';
 
 class BlogEntryListPage extends StatefulWidget {
   const BlogEntryListPage({super.key});
@@ -18,6 +17,7 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
   late Future<List<Blog>> _blogsFuture;
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  static const String blogUrl = "${AppConfig.baseUrl}/blog/";
 
   @override
   void initState() {
@@ -46,7 +46,7 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
   }
 
   Future<List<Blog>> fetchBlogs(CookieRequest request) async {
-    final response = await request.get('http://localhost:8000/blog/json/');
+    final response = await request.get('${blogUrl}json/');
 
     var data = response['blogs'];
 
@@ -62,62 +62,11 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
     return listBlog;
   }
 
-  void _editBlog(Blog blog) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => BlogFormPage(blog: blog),
-      ),
-    ).then((_) => _refreshBlogs());
-  }
-
-  Future<void> _deleteBlog(Blog blog) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirm Deletion'),
-          content: Text('Are you sure you want to delete "${blog.title}"?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Delete', style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirm == true && mounted) {
-      final request = context.read<CookieRequest>();
-      final response = await request.postJson(
-        'http://localhost:8000/blog/delete-flutter/${blog.id}/',
-        jsonEncode(<String, String>{'message': 'delete'}), // Body can be simple
-      );
-      if (mounted) {
-        if (response['status'] == 'success') {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Blog post deleted successfully!')),
-          );
-          _refreshBlogs();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to delete: ${response['message'] ?? 'Unknown error'}')),
-          );
-        }
-      }
-    }
-  }
-
   Future<void> _handleCardTap(Blog blog) async {
     final request = context.read<CookieRequest>();
     try {
       final response = await request.post(
-        'http://localhost:8000/blog/increment-view/${blog.id}/',
+        '${blogUrl}increment-view/${blog.id}/',
         {},
       );
       if (response['status'] == 'success') {
@@ -160,14 +109,14 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
                     borderRadius: BorderRadius.circular(16),
                     child: (blog.thumbnail != null && blog.thumbnail!.isNotEmpty)
                         ? Image.network(
-                      'http://localhost:8000/blog/proxy-image/?url=${Uri.encodeComponent(blog.thumbnail!)}',
-                      fit: BoxFit.cover,
-                      errorBuilder: (c, o, s) => const Center(child: Icon(Icons.error)),
-                    )
+                            '${blogUrl}proxy-image/?url=${Uri.encodeComponent(blog.thumbnail!)}',
+                            fit: BoxFit.cover,
+                            errorBuilder: (c, o, s) => const Center(child: Icon(Icons.error)),
+                          )
                         : Container(
-                      color: Colors.grey[300],
-                      child: const Center(child: Icon(Icons.photo, color: Colors.grey)),
-                    ),
+                            color: Colors.grey[300],
+                            child: const Center(child: Icon(Icons.photo, color: Colors.grey)),
+                          ),
                   ),
                 ),
               );
@@ -198,16 +147,6 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const BlogFormPage()),
-          ).then((_) => _refreshBlogs());
-        },
-        backgroundColor: Colors.indigo,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
       body: FutureBuilder<List<Blog>>(
         future: _blogsFuture,
         builder: (context, AsyncSnapshot<List<Blog>> snapshot) {
@@ -220,7 +159,7 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
             return RefreshIndicator(
               onRefresh: _refreshBlogs,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(0, 24, 0, 80), // Space for FAB
+                padding: const EdgeInsets.fromLTRB(0, 24, 0, 24),
                 children: [
                   if (blogs.isNotEmpty) _buildCarousel(blogs),
                   const Padding(
@@ -239,8 +178,6 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
                           return BlogEntryCard(
                             blog: blog,
                             onTap: () => _handleCardTap(blog),
-                            onEdit: () => _editBlog(blog),
-                            onDelete: () => _deleteBlog(blog),
                           );
                         },
                       ),
