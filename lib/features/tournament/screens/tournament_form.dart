@@ -14,11 +14,8 @@ class TournamentFormPage extends StatefulWidget {
 
 class _TournamentFormPageState extends State<TournamentFormPage> {
   final _formKey = GlobalKey<FormState>();
-
-  // warba
   final Color _themeColor = const Color(0xFF8BC34A);
 
-  // state var
   String _name = "";
   String _sportType = "";
   String _location = "";
@@ -26,11 +23,9 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
   String _prizePool = "";
   String _bannerImage = "";
   
-  // var tanggal
   String _startDate = "";
   String _endDate = ""; 
   
-  // cntroller untuk tanggal
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
   
@@ -42,8 +37,6 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      
-      //  APP BAR 
       appBar: AppBar(
         title: const Text(
           'Buat Turnamen Baru',
@@ -56,8 +49,6 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-
-      // --- BODY FORM ---
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -65,7 +56,6 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionTitle("Informasi Utama"),
               
               _buildLabel("Nama Turnamen"),
               TextFormField(
@@ -99,13 +89,7 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
                 onTap: () => _pickDate(context, _startDateController, (val) => _startDate = val),
                 validator: (val) => val!.isEmpty ? "Tanggal mulai wajib diisi" : null,
               ),
-              
-              const SizedBox(height: 24),
-              const Divider(),
-              const SizedBox(height: 24),
-
-              // DETAIL TAMBAHAN
-              _buildSectionTitle("Detail Tambahan (Opsional)"),
+              const SizedBox(height: 16),
 
               _buildLabel("Tanggal Selesai"),
               TextFormField(
@@ -163,7 +147,6 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
     );
   }
 
-  // Submit Form
   Future<void> _submitForm(CookieRequest request) async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -182,13 +165,12 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
           'end_date': _endDate.isNotEmpty ? _endDate : null, 
           'description': _description,
           'prize_pool': _prizePool,
-          'banner_image': _bannerImage.isNotEmpty ? _bannerImage : null, 
+          'banner_image': _bannerImage.isNotEmpty ? _bannerImage : null,
         }),
       );
 
       if (mounted) {
         if (response['status'] == 'success') {
-          // success case
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Turnamen berhasil dibuat!"), backgroundColor: Colors.green),
           );
@@ -232,19 +214,11 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
 
     if (pickedDate != null) {
       String formattedDate = "${pickedDate.year}-${pickedDate.month.toString().padLeft(2,'0')}-${pickedDate.day.toString().padLeft(2,'0')}";
-      
       setState(() {
         controller.text = formattedDate; 
         setDateState(formattedDate);    
       });
     }
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Text(title, style: TextStyle(color: _themeColor, fontWeight: FontWeight.bold, fontSize: 16)),
-    );
   }
 
   Widget _buildLabel(String text) {
