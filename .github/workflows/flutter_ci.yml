@@ -1,0 +1,46 @@
+name: Flutter CI
+
+# Trigger workflow ini setiap ada push ke branch master
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Ambil kode dari repository
+      - uses: actions/checkout@v3
+
+      # 2. Setup Java (Dibutuhkan untuk build Android)
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      # 3. Setup Flutter
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          # Opsional: definisikan versi flutter spesifik jika perlu
+          # flutter-version: '3.19.0' 
+
+      # 4. Install dependencies
+      - name: Install Dependencies
+        run: flutter pub get
+
+      # 5. Cek Kualitas Kode (Linting)
+      # Ini akan error jika ada kode yang tidak sesuai standar (seperti warning/error di IDE)
+      - name: Analyze Code
+        run: flutter analyze
+
+      # 6. Jalankan Unit Test (Jika ada)
+      - name: Run Tests
+        run: flutter test
+
+      # 7. Coba Build APK (Debug) untuk memastikan tidak ada error build
+      - name: Build APK (Debug)
+        run: flutter build apk --debug
