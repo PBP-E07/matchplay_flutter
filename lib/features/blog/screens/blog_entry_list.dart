@@ -3,6 +3,7 @@ import 'package:matchplay_flutter/features/blog/models/blog_entry.dart';
 import 'package:matchplay_flutter/features/blog/screens/blog_detail.dart';
 import 'package:matchplay_flutter/features/blog/screens/blog_form.dart';
 import 'package:matchplay_flutter/features/blog/widgets/blog_entry_card.dart';
+import 'package:matchplay_flutter/widgets/left_drawer.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
@@ -44,12 +45,14 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
     return listBlog;
   }
 
-  Future<void> deleteBlog(BuildContext context, CookieRequest request, String id) async {
+  Future<void> deleteBlog(
+    BuildContext context,
+    CookieRequest request,
+    String id,
+  ) async {
     final response = await request.postJson(
       "http://localhost:8000/blog/delete-flutter/$id/",
-      jsonEncode({
-        "_method": "DELETE",
-      }),
+      jsonEncode({"_method": "DELETE"}),
     );
 
     if (!context.mounted) return;
@@ -61,7 +64,9 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to delete blog entry. Please try again.")),
+        const SnackBar(
+          content: Text("Failed to delete blog entry. Please try again."),
+        ),
       );
     }
   }
@@ -69,6 +74,7 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const LeftDrawer(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -89,6 +95,14 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
             final blogs = snapshot.data!;
             return CustomScrollView(
               slivers: [
+                const SliverAppBar(
+                  title: Text('Blog'),
+                  floating: true,
+                  pinned: true,
+                  backgroundColor: Colors.blueAccent,
+                  foregroundColor: Colors.white,
+                ),
+
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 8.0),
@@ -98,7 +112,9 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
                         const Text(
                           'Blog',
                           style: TextStyle(
-                              fontSize: 32, fontWeight: FontWeight.bold),
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -115,67 +131,69 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
                     sliver: SliverGrid(
                       gridDelegate:
                           const SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: 400.0,
-                        mainAxisSpacing: 16.0,
-                        crossAxisSpacing: 16.0,
-                        childAspectRatio: 0.9,
-                      ),
-                      delegate: SliverChildBuilderDelegate(
-                        (BuildContext context, int index) {
-                          final blog = blogs[index];
-                          return BlogEntryCard(
-                            blog: blog,
-                            onReadMore: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      BlogDetailPage(blog: blog),
-                                ),
-                              );
-                            },
-                            onEdit: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => BlogFormPage(blog: blog),
-                                ),
-                              ).then((_) => _refreshBlogs());
-                            },
-                            onDelete: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: const Text('Confirm Deletion'),
-                                    content: const Text(
-                                        'Are you sure you want to delete this blog entry?'),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        child: const Text('Cancel'),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                      TextButton(
-                                        child: const Text('Delete'),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                          deleteBlog(
-                                              context,
-                                              context.read<CookieRequest>(),
-                                              blog.id);
-                                        },
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-                          );
-                        },
-                        childCount: blogs.length,
-                      ),
+                            maxCrossAxisExtent: 400.0,
+                            mainAxisSpacing: 16.0,
+                            crossAxisSpacing: 16.0,
+                            childAspectRatio: 0.9,
+                          ),
+                      delegate: SliverChildBuilderDelegate((
+                        BuildContext context,
+                        int index,
+                      ) {
+                        final blog = blogs[index];
+                        return BlogEntryCard(
+                          blog: blog,
+                          onReadMore: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    BlogDetailPage(blog: blog),
+                              ),
+                            );
+                          },
+                          onEdit: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => BlogFormPage(blog: blog),
+                              ),
+                            ).then((_) => _refreshBlogs());
+                          },
+                          onDelete: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text('Confirm Deletion'),
+                                  content: const Text(
+                                    'Are you sure you want to delete this blog entry?',
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      child: const Text('Cancel'),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                    TextButton(
+                                      child: const Text('Delete'),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                        deleteBlog(
+                                          context,
+                                          context.read<CookieRequest>(),
+                                          blog.id,
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        );
+                      }, childCount: blogs.length),
                     ),
                   )
                 else
@@ -183,8 +201,10 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
                     child: Center(
                       child: Text(
                         'There are no blog entries yet.',
-                        style:
-                            TextStyle(fontSize: 20, color: Color(0xff59A5D8)),
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Color(0xff59A5D8),
+                        ),
                       ),
                     ),
                   ),

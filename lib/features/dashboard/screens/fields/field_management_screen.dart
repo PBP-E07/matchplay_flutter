@@ -171,10 +171,11 @@ class _FieldManagementScreenState extends State<FieldManagementScreen> {
         _fetchFields(page: _currentPage);
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
 
@@ -184,6 +185,25 @@ class _FieldManagementScreenState extends State<FieldManagementScreen> {
   Widget build(BuildContext context) {
     if (_isLoading && _fields.isEmpty) {
       return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "Error: $_errorMessage",
+              style: const TextStyle(color: Colors.red),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => _fetchFields(page: 1),
+              child: const Text("Coba Lagi"),
+            ),
+          ],
+        ),
+      );
     }
 
     // Bungkus dengan RefreshIndicator agar user bisa tarik untuk refresh
