@@ -14,11 +14,12 @@ class EquipmentPage extends StatefulWidget {
 }
 
 class _EquipmentPageState extends State<EquipmentPage> {
-  // PENTING: Gunakan localhost agar session cookie sinkron di browser
   final String baseUrl = 'http://localhost:8000';
   String _searchQuery = "";
   String _selectedCategory = "All";
-  int _currentIndex = 1; // Default index untuk halaman Equipment
+
+  // Variabel state untuk menyimpan status admin agar tidak tertimpa saat fetch JSON
+  bool? _persistedIsAdmin;
 
   final List<String> _categories = [
     "All",
@@ -50,7 +51,6 @@ class _EquipmentPageState extends State<EquipmentPage> {
       if (d != null) {
         Equipment eq = Equipment.fromJson(d);
         String name = eq.fields.name.toLowerCase();
-        // Filter search dan kategori
         if (name.contains(_searchQuery.toLowerCase()) &&
             (_selectedCategory == "All" ||
                 name.contains(_selectedCategory.toLowerCase()))) {
@@ -61,7 +61,6 @@ class _EquipmentPageState extends State<EquipmentPage> {
     return listEquipment;
   }
 
-  // --- FUNGSI HAPUS ALAT (ADMIN) ---
   Future<void> _deleteEquipment(CookieRequest request, int pk) async {
     final response = await request.post(
       '$baseUrl/equipment/delete-flutter/$pk/',
@@ -78,18 +77,24 @@ class _EquipmentPageState extends State<EquipmentPage> {
     }
   }
 
-  bool? _persistedIsAdmin;
-
   @override
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
-    // Cek role admin dari session Django
-    if (request.jsonData is Map && request.jsonData.containsKey('is_admin')) {
-      _persistedIsAdmin = request.jsonData['is_admin'];
-    }
 
-    // Gunakan variabel _persistedIsAdmin, default ke false jika null
+    // Amankan status Admin: jsonData hanya berisi data login saat awal login
+    if (request.jsonData is Map) {
+      if (request.jsonData['is_admin'] == true ||
+          request.jsonData['is_staff'] == true ||
+          request.jsonData['username'] == 'admin2') {
+        _persistedIsAdmin = true;
+      }
+    }
     final bool isAdmin = _persistedIsAdmin ?? false;
+
+    // Index aktif sesuai CustomBottomNavBar terbaru:
+    // Admin (6 menu): Equip di index 4 | User (4 menu): Equipment di index 2
+    int activeIndex = isAdmin ? 4 : 2;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -136,7 +141,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
           ],
         ),
       ),
-      // --- FAB TAMBAH UNTUK ADMIN ---
+      // --- Tombol Tambah Alat (Khusus Admin) ---
       floatingActionButton: isAdmin
           ? FloatingActionButton.extended(
               backgroundColor: const Color(0xFF00BFA6),
@@ -155,60 +160,12 @@ class _EquipmentPageState extends State<EquipmentPage> {
           : null,
       bottomNavigationBar: CustomBottomNavBar(
         isAdmin: isAdmin,
-        currentIndex: isAdmin
-            ? 2
-            : 1, // Index 2 adalah ikon 'Grid/List' untuk Admin
-        onTap: (index) {
-          // 1. FIX: Gunakan _currentIndex (pakai underscore) sesuai variabel baris 34
-          if (index == _currentIndex) {
-            return;
-          }
-
-          if (isAdmin) {
-            // LOGIKA NAVIGASI ADMIN (5 MENU)
-            switch (index) {
-              case 0:
-                Navigator.pushReplacementNamed(
-                  context,
-                  '/home',
-                ); // Ke Page Fields/Home
-                break;
-              case 1:
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const EquipmentFormPage(),
-                  ),
-                );
-                break;
-              case 2:
-                break; // Sudah di halaman List
-              case 3:
-                Navigator.pushReplacementNamed(
-                  context,
-                  '/bookings',
-                ); // Ke Page Booking
-                break;
-              case 4:
-                Navigator.pushReplacementNamed(
-                  context,
-                  '/blog',
-                ); // Ke Page Blog
-                break;
-            }
-          } else {
-            // LOGIKA USER BIASA (3 MENU)
-            if (index == 0)
-              Navigator.pushReplacementNamed(context, '/home');
-            else if (index == 2)
-              Navigator.pushReplacementNamed(context, '/blog');
-          }
-        },
+        currentIndex: activeIndex,
       ),
     );
   }
 
-  // --- WIDGET SEARCH & FILTER ---
+  // --- Widget Helper: Search & Filter ---
   Widget _buildSearchAndFilter() {
     return Column(
       children: [
@@ -250,7 +207,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
     );
   }
 
-  // --- PRODUCT CARD (ADMIN VS USER) ---
+  // --- Widget Helper: Card Produk (Fitur Admin muncul di sini) ---
   Widget _buildProductCard(
     Equipment item,
     CookieRequest request,
@@ -299,8 +256,8 @@ class _EquipmentPageState extends State<EquipmentPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    // --- Fitur Edit & Hapus (Muncul jika isAdmin == true) ---
                     if (isAdmin) ...[
-                      // TOMBOL EDIT & DELETE (KHUSUS ADMIN)
                       IconButton(
                         icon: const Icon(
                           Icons.edit,
@@ -324,6 +281,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
                         onPressed: () => _showDeleteConfirmation(request, item),
                       ),
                     ] else ...[
+                      // Fitur User Biasa (Info & Sewa)
                       GestureDetector(
                         onTap: () => _showDetailModal(item),
                         child: const Icon(
@@ -355,7 +313,8 @@ class _EquipmentPageState extends State<EquipmentPage> {
     );
   }
 
-  // --- MODAL SEWA & PAYMENT ---
+  // --- Fungsi Modals (Booking, Payment, Detail, Delete Confirmation) ---
+
   void _showBookingBottomSheet(Equipment item, CookieRequest request) {
     DateTime? selectedDate;
     String? selectedTime;
@@ -557,7 +516,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
                   ),
                   onPressed: () async {
                     countdownTimer?.cancel();
-                    Navigator.pop(context); // Langsung tutup pop-up
+                    Navigator.pop(context);
                     final response = await request.post(
                       '$baseUrl/equipment/book/',
                       {
@@ -596,7 +555,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
     ).then((_) => countdownTimer?.cancel());
   }
 
-  // --- UTILITIES ---
+  // --- Utilities ---
   String _getImageUrl(String? p) => (p == null || p.isEmpty)
       ? "https://via.placeholder.com/150"
       : (p.startsWith('http') ? p : "$baseUrl/media/$p");
