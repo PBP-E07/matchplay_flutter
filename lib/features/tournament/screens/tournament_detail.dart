@@ -145,13 +145,7 @@ class _TournamentDetailPageState extends State<TournamentDetailPage> {
                   ),
                   const PopupMenuItem<String>(
                     value: 'delete',
-                    child: Row(
-                      children: [
-                        Icon(Icons.delete, color: Colors.red),
-                        SizedBox(width: 12),
-                        Text('Hapus'),
-                      ],
-                    ),
+                    child: Text('Hapus', style: TextStyle(color: Colors.red)),
                   ),
                 ],
               ),

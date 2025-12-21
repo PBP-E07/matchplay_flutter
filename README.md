@@ -90,3 +90,6 @@ Aplikasi ini dibagi menjadi beberapa modul.
 
 ## 🖼️ Link Desain
 - https://www.figma.com/design/adNQOklC9KkLehcjLanEan/Matchplay-Mobile?node-id=0-1&p=f&t=3aIdBygfXGnauWeF-0
+
+## 🖼️ Link Video
+- https://youtube.com/playlist?list=PLJIE90PT58zIyLgPghUnZrv2lbItR_-YZ&si=7wkVK7WltBWKKAzH
