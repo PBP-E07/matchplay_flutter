@@ -4,6 +4,7 @@ import 'package:matchplay_flutter/features/equipment/screens/equipment_list.dart
 import 'package:matchplay_flutter/features/blog/screens/blog_entry_list.dart';
 import 'package:matchplay_flutter/features/matches/screens/create_match_form.dart';
 import 'package:matchplay_flutter/features/tournament/screens/tournament_list.dart';
+import 'package:matchplay_flutter/features/tournament/screens/tournament_list.dart';
 import 'package:matchplay_flutter/features/dashboard/screens/admin_dashboard_screen.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
@@ -72,19 +73,19 @@ class CustomBottomNavBar extends StatelessWidget {
     List<BottomNavigationBarItem> items = [];
     if (isAdmin) {
       items = const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.create), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.article), label: ''),
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.create), label: 'Match'),
+        BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: 'Tourney'), 
+        BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Admin'),
+        BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Equip'),
+        BottomNavigationBarItem(icon: Icon(Icons.article), label: 'Blog'),
       ];
     } else {
       items = const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.article), label: ''),
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: 'Tournament'), 
+        BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Equipment'),
+        BottomNavigationBarItem(icon: Icon(Icons.article), label: 'Blog'),
       ];
     }
 
@@ -96,9 +97,8 @@ class CustomBottomNavBar extends StatelessWidget {
       backgroundColor: Colors.white,
       type: BottomNavigationBarType.fixed,
       items: items,
-      // INI KUNCINYA UNTUK MENGHILANGKAN TULISAN
-      showSelectedLabels: false,
-      showUnselectedLabels: false,
+      selectedLabelStyle: const TextStyle(fontSize: 10), 
+      unselectedLabelStyle: const TextStyle(fontSize: 10),
     );
   }
 }

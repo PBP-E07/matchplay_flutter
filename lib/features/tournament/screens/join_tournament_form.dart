@@ -1,7 +1,7 @@
-import 'dart:convert'; 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter/foundation.dart'; 
+import 'package:flutter/foundation.dart';
 import '../models/tournament.dart';
 
 class JoinTournamentPage extends StatefulWidget {
@@ -15,7 +15,7 @@ class JoinTournamentPage extends StatefulWidget {
 
 class _JoinTournamentPageState extends State<JoinTournamentPage> {
   final _formKey = GlobalKey<FormState>();
-  
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _logoUrlController = TextEditingController();
 
@@ -29,25 +29,25 @@ class _JoinTournamentPageState extends State<JoinTournamentPage> {
     });
 
     String baseUrl = kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
-    
-    final url = Uri.parse('$baseUrl/tournament/api/${widget.tournament.id}/join/');
+
+    final url = Uri.parse(
+      '$baseUrl/tournament/api/${widget.tournament.id}/join/',
+    );
 
     try {
       final response = await http.post(
         url,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           'name': _nameController.text,
-          'logo_url': _logoUrlController.text.isEmpty 
-              ? 'https://placehold.co/100' 
+          'logo_url': _logoUrlController.text.isEmpty
+              ? 'https://placehold.co/100'
               : _logoUrlController.text,
         }),
       );
 
-      print("Response Status: ${response.statusCode}");
-      print("Response Body: ${response.body}"); // Debugging
+      // print("Response Status: ${response.statusCode}");
+      // print("Response Body: ${response.body}"); // Debugging
 
       if (response.statusCode == 200) {
         if (mounted) {
@@ -57,29 +57,26 @@ class _JoinTournamentPageState extends State<JoinTournamentPage> {
               backgroundColor: Colors.green,
             ),
           );
-          Navigator.pop(context, true); 
+          Navigator.pop(context, true);
         }
       } else {
         String errorMessage = "Gagal mendaftar. Error: ${response.statusCode}";
         try {
-            final resBody = jsonDecode(response.body);
-            if(resBody['message'] != null) errorMessage = resBody['message'];
+          final resBody = jsonDecode(response.body);
+          if (resBody['message'] != null) errorMessage = resBody['message'];
         } catch (_) {}
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorMessage),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
           );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Terjadi kesalahan: $e")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Terjadi kesalahan: $e")));
       }
     } finally {
       if (mounted) {
@@ -124,13 +121,15 @@ class _JoinTournamentPageState extends State<JoinTournamentPage> {
                   children: [
                     const Icon(Icons.info_outline, color: Color(0xFF8BC34A)),
                     const SizedBox(width: 12),
-                    const Expanded(child: Text("Isi data tim Anda untuk bergabung.")) 
+                    const Expanded(
+                      child: Text("Isi data tim Anda untuk bergabung."),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 30),
 
-              // FIELD INPUT TEAM 
+              // FIELD INPUT TEAM
               const Text(
                 "Nama Tim",
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -145,7 +144,10 @@ class _JoinTournamentPageState extends State<JoinTournamentPage> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFF8BC34A), width: 2),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF8BC34A),
+                      width: 2,
+                    ),
                   ),
                 ),
                 validator: (value) {
@@ -173,7 +175,10 @@ class _JoinTournamentPageState extends State<JoinTournamentPage> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFF8BC34A), width: 2),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF8BC34A),
+                      width: 2,
+                    ),
                   ),
                   prefixIcon: const Icon(Icons.link),
                 ),
@@ -204,11 +209,17 @@ class _JoinTournamentPageState extends State<JoinTournamentPage> {
                       ? const SizedBox(
                           height: 20,
                           width: 20,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
                         )
                       : const Text(
                           "Daftarkan Tim",
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                 ),
               ),
