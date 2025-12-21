@@ -33,7 +33,7 @@ class _CreateMatchPageState extends State<CreateMatchPage> {
     fetchTeams();
   }
 
-  // 1. Fetch Teams untuk Dropdown
+  // DROPDOWN
   Future<void> fetchTeams() async {
     String baseUrl = kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
     final url = Uri.parse('$baseUrl/tournament/api/tournament/${widget.tournament.id}/teams/');
@@ -51,11 +51,11 @@ class _CreateMatchPageState extends State<CreateMatchPage> {
     }
   }
 
-  // 2. Submit Match
+  // SUBMIT MATCH
   Future<void> _submitMatch() async {
     if (!_formKey.currentState!.validate()) return;
     
-    // Validasi Team tidak boleh sama
+    // VALIDASI TEAM
     if (_selectedTeam1!.id == _selectedTeam2!.id) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Team 1 dan Team 2 tidak boleh sama!")),
@@ -86,7 +86,8 @@ class _CreateMatchPageState extends State<CreateMatchPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Match berhasil dibuat!"), backgroundColor: Colors.green),
           );
-          Navigator.pop(context, true); // Balik ke halaman list & refresh
+          // KEMBALI KE HALAMAN
+          Navigator.pop(context, true); 
         }
       } else {
         throw Exception("Gagal membuat match: ${response.body}");

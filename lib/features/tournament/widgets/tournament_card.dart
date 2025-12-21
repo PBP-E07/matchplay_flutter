@@ -32,26 +32,38 @@ class TournamentCard extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(16),
               ),
-              child: 
-              Image.network(
-                (tournament.bannerImage != null &&
-                        tournament.bannerImage!.isNotEmpty)
+              child: Image.network(
+                // cek url
+                (tournament.bannerImage != null && 
+                 tournament.bannerImage!.isNotEmpty && 
+                 tournament.bannerImage!.startsWith('http'))
                     ? tournament.bannerImage!
-                    : "https://placehold.co/600x200/png",
+                    // placeholder
+                    : "https://placehold.co/600x200/png?text=Tournament", 
                 height: 150,
                 width: double.infinity,
                 fit: BoxFit.cover,
+                
+                // ERROR HANDLING
                 errorBuilder: (context, error, stackTrace) {
-                  return Image.asset(
-                    'assets/images/padel_banner.png',
+                  return Container(
                     height: 150,
-                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    color: Colors.grey[300],
+                    child: const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.broken_image, color: Colors.grey, size: 40),
+                        SizedBox(height: 4),
+                        Text("Gagal Muat Gambar", style: TextStyle(color: Colors.grey, fontSize: 10)),
+                      ],
+                    ),
                   );
                 },
               ),
             ),
 
-            // --- CARD TOURNAMENT ---
+            //  CARD TOURNAMENT 
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -86,7 +98,9 @@ class TournamentCard extends StatelessWidget {
                             const SizedBox(height: 6),
                             _buildIconText(
                               Icons.emoji_events_outlined,
-                              "Hadiah Menarik",
+                              (tournament.prizePool != null && tournament.prizePool!.isNotEmpty)
+                                  ? "Rp ${tournament.prizePool}"
+                                  : "Tidak ada hadiah",
                             ),
                           ],
                         ),
@@ -101,7 +115,6 @@ class TournamentCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            // Ambil Tanggal/Bulan saja (perlu parsing date sebenarnya)
                             tournament.startDate,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
