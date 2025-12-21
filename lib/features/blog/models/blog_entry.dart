@@ -25,8 +25,9 @@ class Blog {
   String title;
   String summary;
   String content;
-  String thumbnail;
+  String? thumbnail; // Changed to nullable
   String author;
+  String category; // Changed to non-nullable
   DateTime createdAt;
   int blogViews;
   String url;
@@ -36,8 +37,9 @@ class Blog {
     required this.title,
     required this.summary,
     required this.content,
-    required this.thumbnail,
+    this.thumbnail, // Changed to nullable
     required this.author,
+    required this.category, // Changed to non-nullable
     required this.createdAt,
     required this.blogViews,
     required this.url,
@@ -48,8 +50,9 @@ class Blog {
     title: json["title"],
     summary: json["summary"],
     content: json["content"],
-    thumbnail: json["thumbnail"],
+    thumbnail: json["thumbnail"], // Handles null
     author: json["author"],
+    category: json["category"] ?? 'padel', // Provide default if null
     createdAt: DateTime.parse(json["created_at"]),
     blogViews: json["blog_views"],
     url: json["url"],
@@ -62,6 +65,7 @@ class Blog {
     "content": content,
     "thumbnail": thumbnail,
     "author": author,
+    "category": category,
     "created_at": createdAt.toIso8601String(),
     "blog_views": blogViews,
     "url": url,

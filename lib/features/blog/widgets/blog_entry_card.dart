@@ -1,110 +1,125 @@
+
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:matchplay_flutter/features/blog/models/blog_entry.dart';
 
 class BlogEntryCard extends StatelessWidget {
   final Blog blog;
-  final VoidCallback onReadMore;
+  final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const BlogEntryCard({
     super.key,
     required this.blog,
-    required this.onReadMore,
+    required this.onTap,
     required this.onEdit,
     required this.onDelete,
   });
 
+  String _capitalize(String s) => s.isEmpty ? '' : s[0].toUpperCase() + s.substring(1);
+
   @override
   Widget build(BuildContext context) {
     return Card(
-      clipBehavior: Clip.antiAlias,
+      color: Colors.white,
+      elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
       ),
-      elevation: 4,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            flex: 3,
-            child: Image.network(
-              'http://localhost:8000/blog/proxy-image/?url=${Uri.encodeComponent(blog.thumbnail)}',
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                color: Colors.grey[300],
-                child: const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 4,
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        blog.title,
-                        style: const TextStyle(
-                          fontSize: 18.0,
-                          fontWeight: FontWeight.bold,
+      margin: const EdgeInsets.symmetric(vertical: 6.0),
+      child: InkWell(
+        onTap: onTap, // Keep the main tap for navigation
+        borderRadius: BorderRadius.circular(12.0),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _capitalize(blog.category),
+                      style: const TextStyle(
+                        color: Colors.orange,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      blog.title,
+                      style: const TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      DateFormat('d MMMM yyyy').format(blog.createdAt),
+                      style: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        InkWell(
+                          onTap: onEdit,
+                          child: const Row(
+                            children: [
+                              Icon(Icons.edit, size: 16, color: Colors.blue),
+                              SizedBox(width: 4),
+                              Text('Edit', style: TextStyle(color: Colors.blue, fontSize: 12)),
+                            ],
+                          ),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        blog.summary,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.black54),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          InkWell(
-                            onTap: onEdit,
-                            child: Row(
-                              children: const [
-                                Icon(Icons.edit_square, size: 16),
-                                SizedBox(width: 4),
-                                Text('Edit'),
-                              ],
-                            ),
+                        const SizedBox(width: 16),
+                        InkWell(
+                          onTap: onDelete,
+                          child: const Row(
+                            children: [
+                              Icon(Icons.delete, size: 16, color: Colors.red),
+                              SizedBox(width: 4),
+                              Text('Delete', style: TextStyle(color: Colors.red, fontSize: 12)),
+                            ],
                           ),
-                          const SizedBox(width: 12),
-                          InkWell(
-                            onTap: onDelete,
-                            child: Row(
-                              children: const [
-                                Icon(Icons.delete, size: 16),
-                                SizedBox(width: 4),
-                                Text('Delete'),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      TextButton(
-                        onPressed: onReadMore,
-                        child: const Text('Read More'),
-                      ),
-                    ],
-                  ),
-                ],
+                        ),
+                      ],
+                    )
+                  ],
+                ),
               ),
-            ),
+              const SizedBox(width: 16),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12.0),
+                child: (blog.thumbnail != null && blog.thumbnail!.isNotEmpty)
+                    ? Image.network(
+                        'http://localhost:8000/blog/proxy-image/?url=${Uri.encodeComponent(blog.thumbnail!)}',
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          width: 100,
+                          height: 100,
+                          color: Colors.grey[200],
+                          child: const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
+                        ),
+                      )
+                    : Container(
+                        width: 100,
+                        height: 100,
+                        color: Colors.grey[200],
+                        child: const Center(child: Icon(Icons.photo, color: Colors.grey)),
+                      ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
