@@ -5,9 +5,12 @@ import 'package:matchplay_flutter/features/home/widgets/field_card.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:matchplay_flutter/features/equipment/screens/equipment_list.dart';
+import 'package:matchplay_flutter/features/dashboard/screens/admin_dashboard_screen.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final bool isAdmin;
+
+  const HomePage({super.key, this.isAdmin = false});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -15,7 +18,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   Future<List<Field>> fetchFields(CookieRequest request) async {
-    final response = await request.get('http://localhost:8000/api/fields/?per_page=10000');
+    final response = await request.get(
+      'http://localhost:8000/api/fields/?per_page=10000',
+    );
 
     var dataList = [];
 
@@ -166,16 +171,29 @@ class _HomePageState extends State<HomePage> {
             _buildBottomNavItem(Icons.home, "Home", () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const HomePage()),
+                MaterialPageRoute(
+                  builder: (context) => HomePage(isAdmin: widget.isAdmin),
+                ),
               );
             }),
-            _buildBottomNavItem(Icons.emoji_events, "Admin", () {}),
+
+            if (widget.isAdmin)
+              _buildBottomNavItem(Icons.dashboard, "Admin", () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AdminDashboardScreen(),
+                  ),
+                );
+              }),
+
             _buildBottomNavItem(Icons.shopping_cart, "Equip", () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const EquipmentPage()),
               );
             }),
+
             _buildBottomNavItem(Icons.article, "Blog", () {
               Navigator.push(
                 context,

@@ -111,10 +111,13 @@ class _LoginPageState extends State<LoginPage> {
                       if (request.loggedIn) {
                         String message = response['message'];
                         String uname = response['username'];
+                        bool isAdmin = response['is_staff'] ?? false;
                         if (context.mounted) {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => HomePage()),
+                            MaterialPageRoute(
+                              builder: (context) => HomePage(isAdmin: isAdmin),
+                            ),
                           );
                           ScaffoldMessenger.of(context)
                             ..hideCurrentSnackBar()
