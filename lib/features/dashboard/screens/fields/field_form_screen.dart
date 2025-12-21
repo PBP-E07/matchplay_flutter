@@ -63,6 +63,8 @@ class _FieldFormScreenState extends State<FieldFormScreen> {
         _availableFacilities = facilities;
       });
     } catch (e) {
+      if (!mounted) return;
+
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Gagal memuat fasilitas: $e')));

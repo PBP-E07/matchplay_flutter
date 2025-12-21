@@ -110,7 +110,7 @@ class FieldService {
       if (response.statusCode == 200) {
         return true;
       } else {
-        print('Gagal update: ${response.body}');
+        // print('Gagal update: ${response.body}');
         return false;
       }
     } catch (e) {
@@ -153,7 +153,7 @@ class FieldService {
       }
       return []; // Return kosong jika gagal parsing
     } catch (e) {
-      print("Error fetching facilities: $e");
+      // print("Error fetching facilities: $e");
       return [];
     }
   }

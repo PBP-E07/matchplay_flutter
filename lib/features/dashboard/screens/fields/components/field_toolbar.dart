@@ -29,7 +29,7 @@ class FieldToolbar extends StatelessWidget {
     int start = totalData == 0 ? 0 : ((currentPage - 1) * perPage) + 1;
     int end = min(currentPage * perPage, totalData);
 
-    return Container(
+    return SizedBox(
       width: double.infinity,
       child: Wrap(
         spacing: 16,
