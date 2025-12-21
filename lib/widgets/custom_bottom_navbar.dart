@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
-  final bool isAdmin; // Tambahkan ini
+  final bool isAdmin;
 
   const CustomBottomNavBar({
     super.key,
@@ -20,15 +20,14 @@ class CustomBottomNavBar extends StatelessWidget {
       selectedItemColor: const Color(0xFF00BFA6),
       unselectedItemColor: Colors.black54,
       backgroundColor: Colors.white,
-      // FIX: Paksa type fixed agar label muncul & ikon tidak numpuk
       type: BottomNavigationBarType.fixed,
-      showSelectedLabels: false,
+      // HILANGKAN LABEL AGAR HANYA IKON (SESUAI REQUEST)
+      showSelectedLabels: false, 
       showUnselectedLabels: false,
       items: isAdmin ? _adminItems : _userItems,
     );
   }
 
-  // Menu Admin (5 Ikon) sesuai screenshot lo
   List<BottomNavigationBarItem> get _adminItems => const [
     BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
     BottomNavigationBarItem(icon: Icon(Icons.edit_note), label: 'Add'),
@@ -37,13 +36,9 @@ class CustomBottomNavBar extends StatelessWidget {
     BottomNavigationBarItem(icon: Icon(Icons.article), label: 'Blog'),
   ];
 
-  // Menu User Biasa (3 Ikon)
   List<BottomNavigationBarItem> get _userItems => const [
     BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.shopping_cart),
-      label: 'Equipment',
-    ),
+    BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Equipment'),
     BottomNavigationBarItem(icon: Icon(Icons.article), label: 'Blog'),
   ];
 }

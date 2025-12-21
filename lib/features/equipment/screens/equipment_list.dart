@@ -78,16 +78,18 @@ class _EquipmentPageState extends State<EquipmentPage> {
     }
   }
 
+  bool? _persistedIsAdmin;
+
   @override
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
     // Cek role admin dari session Django
-    final bool isAdmin =
-        request.jsonData['is_admin'] == true ||
-        request.jsonData['is_staff'] == true ||
-        request.jsonData['username'] == 'admin2';
-    int activeIndex = isAdmin ? 2 : 1;
+    if (request.jsonData is Map && request.jsonData.containsKey('is_admin')) {
+      _persistedIsAdmin = request.jsonData['is_admin'];
+    }
 
+    // Gunakan variabel _persistedIsAdmin, default ke false jika null
+    final bool isAdmin = _persistedIsAdmin ?? false;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -158,7 +160,9 @@ class _EquipmentPageState extends State<EquipmentPage> {
             : 1, // Index 2 adalah ikon 'Grid/List' untuk Admin
         onTap: (index) {
           // 1. FIX: Gunakan _currentIndex (pakai underscore) sesuai variabel baris 34
-          if (index == (isAdmin ? 2 : 1)) return;
+          if (index == _currentIndex) {
+            return;
+          }
 
           if (isAdmin) {
             // LOGIKA NAVIGASI ADMIN (5 MENU)
