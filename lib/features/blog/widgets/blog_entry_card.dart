@@ -1,23 +1,26 @@
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:matchplay_flutter/features/blog/models/blog_entry.dart';
+import 'package:matchplay_flutter/config.dart';
 
 class BlogEntryCard extends StatelessWidget {
   final Blog blog;
   final VoidCallback onTap;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
 
   const BlogEntryCard({
     super.key,
     required this.blog,
     required this.onTap,
-    required this.onEdit,
-    required this.onDelete,
   });
 
   String _capitalize(String s) => s.isEmpty ? '' : s[0].toUpperCase() + s.substring(1);
+  static const String blogUrl = "${AppConfig.baseUrl}/blog/";
+
+  String _formatDate(DateTime date) {
+    // Convert UTC DateTime to GMT+7 by adding 7 hours
+    final dateInGmtPlus7 = date.toUtc().add(const Duration(hours: 7));
+    return DateFormat('d MMMM yyyy').format(dateInGmtPlus7);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,38 +62,12 @@ class BlogEntryCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      DateFormat('d MMMM yyyy').format(blog.createdAt),
+                      _formatDate(blog.createdAt),
                       style: const TextStyle(
                         color: Colors.grey,
                         fontSize: 12,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        InkWell(
-                          onTap: onEdit,
-                          child: const Row(
-                            children: [
-                              Icon(Icons.edit, size: 16, color: Colors.blue),
-                              SizedBox(width: 4),
-                              Text('Edit', style: TextStyle(color: Colors.blue, fontSize: 12)),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        InkWell(
-                          onTap: onDelete,
-                          child: const Row(
-                            children: [
-                              Icon(Icons.delete, size: 16, color: Colors.red),
-                              SizedBox(width: 4),
-                              Text('Delete', style: TextStyle(color: Colors.red, fontSize: 12)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
                   ],
                 ),
               ),
@@ -99,7 +76,7 @@ class BlogEntryCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12.0),
                 child: (blog.thumbnail != null && blog.thumbnail!.isNotEmpty)
                     ? Image.network(
-                        'http://localhost:8000/blog/proxy-image/?url=${Uri.encodeComponent(blog.thumbnail!)}',
+                        '${blogUrl}proxy-image/?url=${Uri.encodeComponent(blog.thumbnail!)}',
                         width: 100,
                         height: 100,
                         fit: BoxFit.cover,
