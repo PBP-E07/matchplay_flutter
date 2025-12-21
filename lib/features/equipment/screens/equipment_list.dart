@@ -247,7 +247,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  "Stock: ${item.fields.quantity} | Rp ${item.fields.pricePerHour}",
+                  "Stock: ${item.fields.stock} | Rp ${item.fields.price}",
                   style: const TextStyle(
                     color: Color(0xFF10B981),
                     fontSize: 11,
@@ -265,13 +265,16 @@ class _EquipmentPageState extends State<EquipmentPage> {
                           size: 20,
                           color: Colors.blue,
                         ),
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                EquipmentFormPage(equipment: item),
-                          ),
-                        ),
+                        onPressed: () async{ 
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  EquipmentFormPage(equipment: item),
+                            ),
+                          );
+                        setState(() {});
+                        },
                       ),
                       IconButton(
                         icon: const Icon(
@@ -408,7 +411,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
                       Text("$quantity"),
                       IconButton(
                         icon: const Icon(Icons.add_circle_outline),
-                        onPressed: quantity < item.fields.quantity
+                        onPressed: quantity < item.fields.stock
                             ? () => setModalState(() => quantity++)
                             : null,
                       ),
@@ -498,7 +501,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
                 ),
                 const SizedBox(height: 15),
                 Text(
-                  "Total: Rp ${double.parse(item.fields.pricePerHour) * qty}",
+                  "Total: Rp ${double.parse(item.fields.price) * qty}",
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -618,7 +621,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
                     ),
                   ),
                   Text(
-                    "Rp ${i.fields.pricePerHour}",
+                    "Rp ${i.fields.price}",
                     style: const TextStyle(
                       color: Color(0xFF10B981),
                       fontWeight: FontWeight.bold,

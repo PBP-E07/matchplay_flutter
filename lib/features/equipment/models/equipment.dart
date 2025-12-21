@@ -32,31 +32,31 @@ class Equipment {
 
 class Fields {
     String name;
-    int quantity;
-    String pricePerHour; // Django serialize Decimal jadi String, ini udah bener
+    int stock;
+    String price; // Django serialize Decimal jadi String, ini udah bener
     String description;
     String? image; // <--- UBAH JADI NULLABLE (Ada tanda tanyanya)
 
     Fields({
         required this.name,
-        required this.quantity,
-        required this.pricePerHour,
+        required this.stock,
+        required this.price,
         required this.description,
         this.image, // Hapus 'required', ganti jadi optional
     });
 
     factory Fields.fromJson(Map<String, dynamic> json) => Fields(
         name: json["name"],
-        quantity: json["quantity"],
-        pricePerHour: json["price_per_hour"],
+        stock: json["quantity"],
+        price: json["price_per_hour"],
         description: json["description"],
         image: json["image"], 
     );
 
     Map<String, dynamic> toJson() => {
         "name": name,
-        "quantity": quantity,
-        "price_per_hour": pricePerHour,
+        "quantity": stock,
+        "price_per_hour": price,
         "description": description,
         "image": image,
     };
