@@ -1,14 +1,23 @@
+// Package Umum
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+
+// Fields
 import '../../../fields/models/field.dart';
 import '../../../fields/services/field_service.dart';
+
+// Screens
 import 'field_form_screen.dart';
 
 // Components
-import 'components/dashboard_stats.dart';
 import 'components/field_table.dart';
-import 'components/pagination_bar.dart';
-import 'components/field_filter_dialog.dart';
-import 'components/field_toolbar.dart';
+
+// Shared Widgets
+import '../../widgets/dashboard_stats.dart';
+import '../../widgets/pagination_bar.dart';
+import '../../widgets/admin_toolbar.dart';
+import '../../widgets/admin_filter_dialog.dart';
 
 class FieldManagementScreen extends StatefulWidget {
   const FieldManagementScreen({super.key});
@@ -65,6 +74,8 @@ class _FieldManagementScreenState extends State<FieldManagementScreen> {
   // --- LOGIC SECTION ---
 
   Future<void> _fetchFields({int page = 1}) async {
+    final request = context.read<CookieRequest>();
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -72,6 +83,7 @@ class _FieldManagementScreenState extends State<FieldManagementScreen> {
 
     try {
       final response = await _service.fetchFields(
+        request,
         page: page,
         perPage: _perPage,
         category: _filterCategory,
@@ -116,7 +128,7 @@ class _FieldManagementScreenState extends State<FieldManagementScreen> {
     // Membuka Dialog yang sudah di-extract
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) => FieldFilterDialog(
+      builder: (context) => AdminFilterDialog(
         currentCategory: _filterCategory,
         currentMinPrice: _filterMinPrice,
         currentMaxPrice: _filterMaxPrice,
@@ -161,11 +173,13 @@ class _FieldManagementScreenState extends State<FieldManagementScreen> {
   }
 
   Future<void> _processDelete(int id) async {
+    final request = context.read<CookieRequest>();
+
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Menghapus...')));
     try {
-      final success = await _service.deleteField(id);
+      final success = await _service.deleteField(request, id);
       if (success) {
         if (mounted) ScaffoldMessenger.of(context).hideCurrentSnackBar();
         _fetchFields(page: _currentPage);
@@ -237,6 +251,9 @@ class _FieldManagementScreenState extends State<FieldManagementScreen> {
                   totalData: _totalData,
                   avgPrice: _avgPrice,
                   avgRating: _avgRating,
+                  totalLabel: "Total Fields",
+                  avgPriceLabel: "Average Price",
+                  avgRatingLabel: "Average Rating",
                 ),
                 const SizedBox(height: 32),
 
@@ -246,13 +263,14 @@ class _FieldManagementScreenState extends State<FieldManagementScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                FieldToolbar(
+                AdminToolbar(
                   onAddPressed: _openAddForm,
                   onFilterPressed: _showFilterDialog,
                   totalData: _totalData,
                   currentPage: _currentPage,
                   perPage: _perPage,
                   pageSizeList: _pageSizeList,
+                  addButtonLabel: "Tambah Lapangan",
                   onPerPageChanged: (val) {
                     setState(() {
                       _perPage = val;
