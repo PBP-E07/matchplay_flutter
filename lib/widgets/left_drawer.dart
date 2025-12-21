@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:matchplay_flutter/features/blog/screens/blog_entry_list.dart';
 import 'package:matchplay_flutter/features/blog/screens/menu.dart';
 import 'package:matchplay_flutter/features/dashboard/screens/admin_dashboard_screen.dart';
 import 'package:matchplay_flutter/features/equipment/screens/equipment_list.dart';
@@ -45,7 +46,7 @@ class LeftDrawer extends StatelessWidget {
             onTap: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const MyHomePage()),
+                MaterialPageRoute(builder: (context) => const BlogEntryListPage()),
               );
             },
           ),

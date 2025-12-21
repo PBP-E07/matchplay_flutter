@@ -21,6 +21,15 @@ class _BlogFormPageState extends State<BlogFormPage> {
   late TextEditingController _summaryController;
   late TextEditingController _contentController;
   late TextEditingController _thumbnailController;
+  String? _selectedCategory;
+
+  final List<Map<String, String>> _categories = [
+    {'value': 'padel', 'display': 'Padel'},
+    {'value': 'basket', 'display': 'Basket'},
+    {'value': 'futsal', 'display': 'Futsal'},
+    {'value': 'badminton', 'display': 'Badminton'},
+    {'value': 'Health & Fitness', 'display': 'Health & Fitness'},
+  ];
 
   bool get _isEditing => widget.blog != null;
 
@@ -32,6 +41,7 @@ class _BlogFormPageState extends State<BlogFormPage> {
     _summaryController = TextEditingController(text: widget.blog?.summary ?? "");
     _contentController = TextEditingController(text: widget.blog?.content ?? "");
     _thumbnailController = TextEditingController(text: widget.blog?.thumbnail ?? "");
+    _selectedCategory = widget.blog?.category ?? 'padel'; // Set default to 'padel'
   }
 
   @override
@@ -78,6 +88,30 @@ class _BlogFormPageState extends State<BlogFormPage> {
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
+                child: DropdownButtonFormField<String>(
+                  value: _selectedCategory,
+                  decoration: const InputDecoration(
+                    labelText: "Category",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                    ),
+                  ),
+                  items: _categories.map<DropdownMenuItem<String>>((Map<String, String> category) {
+                    return DropdownMenuItem<String>(
+                      value: category['value'],
+                      child: Text(category['display']!),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedCategory = newValue;
+                    });
+                  },
+                  validator: (value) => value == null ? 'Please select a category' : null,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
                   controller: _authorController,
                   decoration: const InputDecoration(
@@ -90,25 +124,6 @@ class _BlogFormPageState extends State<BlogFormPage> {
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {
                       return "Author cannot be empty!";
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  controller: _summaryController,
-                  decoration: const InputDecoration(
-                    hintText: "Summary",
-                    labelText: "Summary",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(5.0)),
-                    ),
-                  ),
-                  validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return "Summary cannot be empty!";
                     }
                     return null;
                   },
@@ -138,18 +153,13 @@ class _BlogFormPageState extends State<BlogFormPage> {
                 child: TextFormField(
                   controller: _thumbnailController,
                   decoration: const InputDecoration(
-                    hintText: "Thumbnail URL",
+                    hintText: "Thumbnail URL (Optional)",
                     labelText: "Thumbnail URL",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(5.0)),
                     ),
                   ),
-                  validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return "Thumbnail URL cannot be empty!";
-                    }
-                    return null;
-                  },
+                  // Validator removed as it is now optional
                 ),
               ),
               Align(
@@ -165,16 +175,17 @@ class _BlogFormPageState extends State<BlogFormPage> {
                         
                         final response = await request.postJson(
                             url,
-                            jsonEncode(<String, String>{
+                            jsonEncode(<String, String?>{
                               '_method': _isEditing ? 'PUT' : 'POST',
                               'title': _titleController.text,
                               'author': _authorController.text,
                               'summary': _summaryController.text,
                               'content': _contentController.text,
                               'thumbnail': _thumbnailController.text,
+                              'category': _selectedCategory,
                             }));
                         if (context.mounted) {
-                           if (response['status'] == 'ok') {
+                           if (response['status'] == 'success') {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                               content: Text("Blog post has been ${_isEditing ? 'updated' : 'saved'}!"),
                             ));
