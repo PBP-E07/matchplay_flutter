@@ -28,9 +28,9 @@ class _EquipmentFormPageState extends State<EquipmentFormPage> {
     // Kalau ada data equipment (Mode Edit), isi form-nya
     if (widget.equipment != null) {
       _nameController.text = widget.equipment!.fields.name;
-      _priceController.text = widget.equipment!.fields.pricePerHour.toString();
+      _priceController.text = widget.equipment!.fields.price.toString();
       _descController.text = widget.equipment!.fields.description;
-      _qtyController.text = widget.equipment!.fields.quantity.toString();
+      _qtyController.text = widget.equipment!.fields.stock.toString();
       _imageController.text = widget.equipment!.fields.image ?? "";
     }
   }
@@ -102,9 +102,9 @@ class _EquipmentFormPageState extends State<EquipmentFormPage> {
                         url,
                         jsonEncode({
                           'name': _nameController.text,
-                          'price_per_hour': _priceController.text,
+                          'price': _priceController.text,
                           'description': _descController.text,
-                          'quantity': _qtyController.text,
+                          'stock': _qtyController.text,
                           'image': _imageController.text,
                         }),
                       );
