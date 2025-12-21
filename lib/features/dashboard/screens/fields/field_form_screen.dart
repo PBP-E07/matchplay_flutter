@@ -220,8 +220,16 @@ class _FieldFormScreenState extends State<FieldFormScreen> {
                               border: OutlineInputBorder(),
                             ),
                             keyboardType: TextInputType.number,
-                            validator: (value) =>
-                                value!.isEmpty ? 'Wajib diisi' : null,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Wajib diisi';
+                              }
+                              // Cek apakah value valid sebagai integer
+                              if (int.tryParse(value) == null) {
+                                return 'Harus berupa angka bulat valid';
+                              }
+                              return null;
+                            },
                           ),
                         ),
                         const SizedBox(width: 16),
