@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:matchplay_flutter/features/blog/models/blog_entry.dart';
 import 'package:matchplay_flutter/features/blog/screens/blog_detail.dart';
 import 'package:matchplay_flutter/features/blog/widgets/blog_entry_card.dart';
+import 'package:matchplay_flutter/features/equipment/screens/equipment_list.dart';
+import 'package:matchplay_flutter/features/home/screens/home_page.dart';
+import 'package:matchplay_flutter/widgets/custom_bottom_navbar.dart';
+import 'package:matchplay_flutter/widgets/left_drawer.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:matchplay_flutter/config.dart';
@@ -30,6 +34,22 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
         });
       }
     });
+  }
+
+  void _onItemTapped(int index) {
+    if (index == 0) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    } else if (index == 1) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const EquipmentPage()),
+      );
+    } else if (index == 2) {
+      // Do nothing, already on this page
+    }
   }
 
   @override
@@ -146,6 +166,10 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Blog'),
+      ),
+      drawer: const LeftDrawer(),
       backgroundColor: const Color(0xFFF5F5F5),
       body: FutureBuilder<List<Blog>>(
         future: _blogsFuture,
@@ -159,7 +183,7 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
             return RefreshIndicator(
               onRefresh: _refreshBlogs,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(0, 24, 0, 24),
+                padding: const EdgeInsets.fromLTRB(0, 24, 0, 8),
                 children: [
                   if (blogs.isNotEmpty) _buildCarousel(blogs),
                   const Padding(
@@ -196,6 +220,10 @@ class _BlogEntryListPageState extends State<BlogEntryListPage> {
             return const Center(child: Text('No data available.'));
           }
         },
+      ),
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: 2,
+        onTap: _onItemTapped,
       ),
     );
   }
