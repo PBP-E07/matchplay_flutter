@@ -6,7 +6,7 @@
 - Fathan Alfahrezi (2406496284)
 
 ## 🔗 Tautan Aplikasi
-- Link Aplikasi: https://app.bitrise.io/app/48c43aa3-2885-4d22-9e6d-e23ffb30acc4/installable-artifacts/8e89b46f461281a0/public-install-page/9a91f60ba959649d2894c07836535875
+- Link Aplikasi: https://app.bitrise.io/app/48c43aa3-2885-4d22-9e6d-e23ffb30acc4/installable-artifacts/b2d9cb63590628ef/public-install-page/c718524b8c24f43e3d544db84b7de1de
 
 ## ⚽ MatchPlay Flutter
 
