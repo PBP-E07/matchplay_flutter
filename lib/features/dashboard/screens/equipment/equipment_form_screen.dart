@@ -35,10 +35,10 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
       // Isi form jika Edit Mode
       final e = widget.equipment!;
       _nameController.text = e.fields.name;
-      _quantityController.text = e.fields.quantity.toString();
+      _quantityController.text = e.fields.stock.toString();
       // Konversi string price "10000.00" jadi "10000" agar rapi di textfield
       _priceController.text = double.parse(
-        e.fields.pricePerHour,
+        e.fields.price,
       ).toInt().toString();
       _descController.text = e.fields.description;
     }
