@@ -91,12 +91,12 @@ class EquipmentTable extends StatelessWidget {
                           ),
                         ),
                         // Quantity
-                        DataCell(Text(item.fields.quantity.toString())),
+                        DataCell(Text(item.fields.stock.toString())),
                         // Price
                         DataCell(
                           Text(
                             currencyFormat.format(
-                              double.parse(item.fields.pricePerHour),
+                              double.parse(item.fields.price),
                             ),
                           ),
                         ),

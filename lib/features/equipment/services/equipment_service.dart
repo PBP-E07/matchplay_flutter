@@ -36,12 +36,12 @@ class EquipmentService {
       // ... LOGIKA FILTERING CLIENT-SIDE (Sama seperti sebelumnya) ...
       if (minPrice != null) {
         allData = allData
-            .where((e) => double.parse(e.fields.pricePerHour) >= minPrice)
+            .where((e) => double.parse(e.fields.price) >= minPrice)
             .toList();
       }
       if (maxPrice != null) {
         allData = allData
-            .where((e) => double.parse(e.fields.pricePerHour) <= maxPrice)
+            .where((e) => double.parse(e.fields.price) <= maxPrice)
             .toList();
       }
 
@@ -49,8 +49,8 @@ class EquipmentService {
       double totalPrice = 0;
       int totalQty = 0;
       for (var e in allData) {
-        totalPrice += double.parse(e.fields.pricePerHour);
-        totalQty += e.fields.quantity;
+        totalPrice += double.parse(e.fields.price);
+        totalQty += e.fields.stock;
       }
       double avgPrice = allData.isNotEmpty ? totalPrice / allData.length : 0;
 
