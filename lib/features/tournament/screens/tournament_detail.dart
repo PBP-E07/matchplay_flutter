@@ -135,13 +135,7 @@ class _TournamentDetailPageState extends State<TournamentDetailPage> {
                 itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                   const PopupMenuItem<String>(
                     value: 'edit',
-                    child: Row(
-                      children: [
-                        Icon(Icons.edit, color: Colors.orange),
-                        SizedBox(width: 12),
-                        Text('Edit'),
-                      ],
-                    ),
+                    child: Text('Edit'), 
                   ),
                   const PopupMenuItem<String>(
                     value: 'delete',
@@ -330,12 +324,6 @@ class _TournamentDetailPageState extends State<TournamentDetailPage> {
                           // FLAG DATA BERUBAH
                           _hasChanged = true;
                         });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Berhasil bergabung!"),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
                       }
                     },
                     style: ElevatedButton.styleFrom(

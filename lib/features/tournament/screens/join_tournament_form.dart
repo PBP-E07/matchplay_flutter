@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:pbp_django_auth/pbp_django_auth.dart'; 
+import 'package:provider/provider.dart'; 
 import 'package:matchplay_flutter/config.dart';
 import '../models/tournament.dart';
 
@@ -15,30 +16,24 @@ class JoinTournamentPage extends StatefulWidget {
 
 class _JoinTournamentPageState extends State<JoinTournamentPage> {
   final _formKey = GlobalKey<FormState>();
-
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _logoUrlController = TextEditingController();
 
   bool _isLoading = false;
 
-  Future<void> _submitForm() async {
+  Future<void> _submitForm(CookieRequest request) async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
       _isLoading = true;
     });
 
-    String baseUrl = AppConfig.baseUrl;
-
-    final url = Uri.parse(
-      '$baseUrl/tournament/api/${widget.tournament.id}/join/',
-    );
+    final String url = "${AppConfig.baseUrl}/tournament/api/${widget.tournament.id}/join/";
 
     try {
-      final response = await http.post(
+      final response = await request.postJson(
         url,
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
+        jsonEncode(<String, String>{
           'name': _nameController.text,
           'logo_url': _logoUrlController.text.isEmpty
               ? 'https://placehold.co/100'
@@ -46,10 +41,7 @@ class _JoinTournamentPageState extends State<JoinTournamentPage> {
         }),
       );
 
-      // print("Response Status: ${response.statusCode}");
-      // print("Response Body: ${response.body}"); // Debugging
-
-      if (response.statusCode == 200) {
+      if (response['status'] == 'success') {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -57,26 +49,23 @@ class _JoinTournamentPageState extends State<JoinTournamentPage> {
               backgroundColor: Colors.green,
             ),
           );
-          Navigator.pop(context, true);
+          Navigator.pop(context, true); 
         }
       } else {
-        String errorMessage = "Gagal mendaftar. Error: ${response.statusCode}";
-        try {
-          final resBody = jsonDecode(response.body);
-          if (resBody['message'] != null) errorMessage = resBody['message'];
-        } catch (_) {}
-
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(response['message'] ?? "Gagal mendaftar."),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Terjadi kesalahan: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Terjadi kesalahan: $e")),
+        );
       }
     } finally {
       if (mounted) {
@@ -89,6 +78,8 @@ class _JoinTournamentPageState extends State<JoinTournamentPage> {
 
   @override
   Widget build(BuildContext context) {
+    final request = context.watch<CookieRequest>();
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -191,11 +182,11 @@ class _JoinTournamentPageState extends State<JoinTournamentPage> {
 
               const SizedBox(height: 40),
 
-              // SUBMIT
+              // SUBMIT BUTTON
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _submitForm,
+                  onPressed: _isLoading ? null : () => _submitForm(request),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF8BC34A), // Hijau
                     foregroundColor: Colors.white,

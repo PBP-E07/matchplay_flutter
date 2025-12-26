@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:pbp_django_auth/pbp_django_auth.dart'; 
+import 'package:provider/provider.dart'; 
 import 'package:matchplay_flutter/config.dart';
 import '../models/tournament.dart';
 import '../models/team.dart';
@@ -17,56 +18,54 @@ class CreateMatchPage extends StatefulWidget {
 class _CreateMatchPageState extends State<CreateMatchPage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Variables
   List<Team> _teams = [];
   Team? _selectedTeam1;
   Team? _selectedTeam2;
-  final TextEditingController _roundController = TextEditingController(
-    text: "1",
-  );
-  final TextEditingController _score1Controller = TextEditingController(
-    text: "0",
-  );
-  final TextEditingController _score2Controller = TextEditingController(
-    text: "0",
-  );
+  
+  final TextEditingController _roundController = TextEditingController(text: "1");
+  final TextEditingController _score1Controller = TextEditingController(text: "0");
+  final TextEditingController _score2Controller = TextEditingController(text: "0");
 
   bool _isLoading = false;
+  bool _isInit = true; 
 
   @override
-  void initState() {
-    super.initState();
-    fetchTeams();
-  }
-
-  // DROPDOWN
-  Future<void> fetchTeams() async {
-    String baseUrl = AppConfig.baseUrl;
-    final url = Uri.parse(
-      '$baseUrl/tournament/api/tournament/${widget.tournament.id}/teams/',
-    );
-
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        List<dynamic> data = json.decode(response.body);
-        setState(() {
-          _teams = data.map((d) => Team.fromJson(d)).toList();
-        });
-      }
-    } catch (e) {
-      // print("Error fetching teams: $e");
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isInit) {
+      final request = context.watch<CookieRequest>();
+      fetchTeams(request);
+      _isInit = false;
     }
   }
 
-  // SUBMIT MATCH
-  Future<void> _submitMatch() async {
+  Future<void> fetchTeams(CookieRequest request) async {
+    String baseUrl = AppConfig.baseUrl;
+    final String url = '$baseUrl/tournament/api/tournament/${widget.tournament.id}/teams/';
+
+    try {
+      final response = await request.get(url);
+      
+      if (mounted) {
+        setState(() {
+          _teams = response.map<Team>((d) => Team.fromJson(d)).toList();
+        });
+      }
+    } catch (e) {
+      print("Error fetching teams: $e");
+    }
+  }
+
+  Future<void> _submitMatch(CookieRequest request) async {
     if (!_formKey.currentState!.validate()) return;
 
     // VALIDASI TEAM
     if (_selectedTeam1!.id == _selectedTeam2!.id) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Team 1 dan Team 2 tidak boleh sama!")),
+        const SnackBar(
+          content: Text("Team 1 dan Team 2 tidak boleh sama!"),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
@@ -74,15 +73,12 @@ class _CreateMatchPageState extends State<CreateMatchPage> {
     setState(() => _isLoading = true);
 
     String baseUrl = AppConfig.baseUrl;
-    final url = Uri.parse(
-      '$baseUrl/tournament/api/tournament/${widget.tournament.id}/matches/create/',
-    );
+    final String url = '$baseUrl/tournament/api/tournament/${widget.tournament.id}/matches/create/';
 
     try {
-      final response = await http.post(
+      final response = await request.postJson(
         url,
-        headers: {"Content-Type": "application/json"},
-        body: json.encode({
+        jsonEncode({
           "team1_id": _selectedTeam1!.id,
           "team2_id": _selectedTeam2!.id,
           "round_number": int.parse(_roundController.text),
@@ -91,7 +87,7 @@ class _CreateMatchPageState extends State<CreateMatchPage> {
         }),
       );
 
-      if (response.statusCode == 201) {
+      if (response['status'] == 'success') {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -99,11 +95,17 @@ class _CreateMatchPageState extends State<CreateMatchPage> {
               backgroundColor: Colors.green,
             ),
           );
-          // KEMBALI KE HALAMAN
-          Navigator.pop(context, true);
+          Navigator.pop(context, true); 
         }
       } else {
-        throw Exception("Gagal membuat match: ${response.body}");
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response['message'] ?? "Gagal membuat match"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -112,12 +114,16 @@ class _CreateMatchPageState extends State<CreateMatchPage> {
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final request = context.watch<CookieRequest>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Create Match"),
@@ -147,7 +153,7 @@ class _CreateMatchPageState extends State<CreateMatchPage> {
               ),
               const SizedBox(height: 16),
 
-              // DROPDOWN TEAM B
+              // DROPDOWN TEAM 2
               DropdownButtonFormField<Team>(
                 decoration: const InputDecoration(
                   labelText: "Pilih Team 2",
@@ -201,17 +207,24 @@ class _CreateMatchPageState extends State<CreateMatchPage> {
               ),
               const SizedBox(height: 30),
 
-              // SUBMIT
+              // SUBMIT BUTTON
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _submitMatch,
+                  onPressed: _isLoading ? null : () => _submitMatch(request),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF8BC34A),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
                       : const Text(
                           "Simpan Match",
                           style: TextStyle(

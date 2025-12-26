@@ -17,12 +17,12 @@ class EditTournamentFormPage extends StatefulWidget {
 
 class _EditTournamentFormPageState extends State<EditTournamentFormPage> {
   final _formKey = GlobalKey<FormState>();
-  final Color _themeColor = const Color(0xFFFFA726);
+  final Color _themeColor = const Color(0xFFFFA726); 
 
   late String _name;
   late String _sportType;
   late String _location;
-  late String _description;
+  late String _description; 
   late String _prizePool;
   late String _bannerImage;
   late String _startDate;
@@ -39,7 +39,7 @@ class _EditTournamentFormPageState extends State<EditTournamentFormPage> {
     _name = widget.tournament.name;
     _sportType = widget.tournament.sportType ?? "";
     _location = widget.tournament.location;
-    _description = "";
+    _description = widget.tournament.description; 
     _prizePool = widget.tournament.prizePool ?? "";
     _bannerImage = widget.tournament.bannerImage ?? "";
     _startDate = widget.tournament.startDate;
@@ -54,7 +54,12 @@ class _EditTournamentFormPageState extends State<EditTournamentFormPage> {
     final request = context.watch<CookieRequest>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Edit Turnamen")),
+      appBar: AppBar(
+        title: const Text("Edit Turnamen"),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
+      ),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -114,6 +119,20 @@ class _EditTournamentFormPageState extends State<EditTournamentFormPage> {
                 onChanged: (val) => _prizePool = val,
               ),
               const SizedBox(height: 16),
+              
+              // 2. PERBAIKAN: Menambahkan Field Deskripsi yang Hilang
+              TextFormField(
+                initialValue: _description,
+                decoration: const InputDecoration(
+                  labelText: "Deskripsi",
+                  alignLabelWithHint: true,
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+                onChanged: (val) => _description = val,
+              ),
+              
+              const SizedBox(height: 16),
               TextFormField(
                 initialValue: _bannerImage,
                 decoration: const InputDecoration(labelText: "Banner URL"),
@@ -129,13 +148,15 @@ class _EditTournamentFormPageState extends State<EditTournamentFormPage> {
                     padding: const EdgeInsets.all(16),
                   ),
                   onPressed: _isLoading ? null : () => _submitEdit(request),
-                  child: const Text(
-                    "UPDATE TURNAMEN",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          "UPDATE TURNAMEN",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -160,7 +181,7 @@ class _EditTournamentFormPageState extends State<EditTournamentFormPage> {
           'location': _location,
           'start_date': _startDate,
           'end_date': _endDate.isNotEmpty ? _endDate : null,
-          'description': _description,
+          'description': _description, 
           'prize_pool': _prizePool,
           'banner_image': _bannerImage.isNotEmpty ? _bannerImage : null,
         }),
@@ -168,22 +189,32 @@ class _EditTournamentFormPageState extends State<EditTournamentFormPage> {
 
       if (mounted) {
         if (response['status'] == 'success') {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text("Berhasil diupdate!")));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Berhasil diupdate!"),
+              backgroundColor: Colors.green,
+            ),
+          );
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const TournamentListPage()),
             (route) => false,
           );
         } else {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(response['message'])));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response['message'] ?? "Gagal update"),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       }
     } catch (e) {
-      //  print(e);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e")),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
