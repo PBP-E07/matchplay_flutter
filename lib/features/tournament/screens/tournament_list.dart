@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:matchplay_flutter/config.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import '../models/tournament.dart';
 import '../widgets/tournament_card.dart';
 import 'tournament_form.dart';
 import 'tournament_detail.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 class TournamentListPage extends StatefulWidget {
   const TournamentListPage({super.key});
@@ -16,16 +16,14 @@ class TournamentListPage extends StatefulWidget {
 
 class _TournamentListPageState extends State<TournamentListPage> {
   Future<List<Tournament>> fetchTournaments(CookieRequest request) async {
-    String url = kIsWeb 
-        ? 'http://localhost:8000/tournament/json/' 
-        : 'http://10.0.2.2:8000/tournament/json/';
+    String url = '${AppConfig.baseUrl}/tournament/json/';
 
-    print("Requesting to: $url");
+    // print("Requesting to: $url");
 
     try {
       final response = await request.get(url);
       List<Tournament> listTournament = [];
-      
+
       for (var d in response) {
         if (d != null) {
           try {
@@ -37,15 +35,14 @@ class _TournamentListPageState extends State<TournamentListPage> {
               listTournament.add(Tournament.fromJson(d));
             }
           } catch (e) {
-            print("Gagal parsing item: $e");
+            // print("Gagal parsing item: $e");
           }
         }
       }
-      print("Berhasil load: ${listTournament.length} turnamen");
+      // print("Berhasil load: ${listTournament.length} turnamen");
       return listTournament;
-
     } catch (e) {
-      print("Error Fetch: $e");
+      // print("Error Fetch: $e");
       return [];
     }
   }
@@ -125,10 +122,10 @@ class _TournamentListPageState extends State<TournamentListPage> {
               future: fetchTournaments(request),
               builder: (context, AsyncSnapshot snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                   return const Padding(
-                     padding: EdgeInsets.only(top: 50),
-                     child: Center(child: CircularProgressIndicator()),
-                   );
+                  return const Padding(
+                    padding: EdgeInsets.only(top: 50),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
                 } else if (!snapshot.hasData || snapshot.data.isEmpty) {
                   return const Padding(
                     padding: EdgeInsets.only(top: 50),
@@ -143,7 +140,7 @@ class _TournamentListPageState extends State<TournamentListPage> {
                     itemBuilder: (_, index) {
                       return TournamentCard(
                         tournament: snapshot.data![index],
-                        
+
                         // UPDATE
                         onTap: () async {
                           final result = await Navigator.push(
@@ -157,11 +154,10 @@ class _TournamentListPageState extends State<TournamentListPage> {
 
                           if (result == true) {
                             setState(() {
-                              print("Data berubah, refreshing list...");
+                              // print("Data berubah, refreshing list...");
                             });
                           }
                         },
-                        
                       );
                     },
                   );

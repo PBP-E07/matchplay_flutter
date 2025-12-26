@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart'; 
+import 'package:matchplay_flutter/config.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import '../models/tournament.dart';
-import 'tournament_list.dart'; 
+import 'tournament_list.dart';
 
 class EditTournamentFormPage extends StatefulWidget {
   final Tournament tournament;
@@ -22,15 +22,15 @@ class _EditTournamentFormPageState extends State<EditTournamentFormPage> {
   late String _name;
   late String _sportType;
   late String _location;
-  late String _description;
+  late String _description; 
   late String _prizePool;
   late String _bannerImage;
   late String _startDate;
-  late String _endDate; 
+  late String _endDate;
 
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
-  
+
   bool _isLoading = false;
 
   @override
@@ -39,7 +39,7 @@ class _EditTournamentFormPageState extends State<EditTournamentFormPage> {
     _name = widget.tournament.name;
     _sportType = widget.tournament.sportType ?? "";
     _location = widget.tournament.location;
-    _description = ""; 
+    _description = widget.tournament.description; 
     _prizePool = widget.tournament.prizePool ?? "";
     _bannerImage = widget.tournament.bannerImage ?? "";
     _startDate = widget.tournament.startDate;
@@ -54,7 +54,12 @@ class _EditTournamentFormPageState extends State<EditTournamentFormPage> {
     final request = context.watch<CookieRequest>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Edit Turnamen")),
+      appBar: AppBar(
+        title: const Text("Edit Turnamen"),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
+      ),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -82,16 +87,30 @@ class _EditTournamentFormPageState extends State<EditTournamentFormPage> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _startDateController,
-                decoration: const InputDecoration(labelText: "Tanggal Mulai", suffixIcon: Icon(Icons.calendar_today)),
+                decoration: const InputDecoration(
+                  labelText: "Tanggal Mulai",
+                  suffixIcon: Icon(Icons.calendar_today),
+                ),
                 readOnly: true,
-                onTap: () => _pickDate(context, _startDateController, (val) => _startDate = val),
+                onTap: () => _pickDate(
+                  context,
+                  _startDateController,
+                  (val) => _startDate = val,
+                ),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _endDateController,
-                decoration: const InputDecoration(labelText: "Tanggal Selesai", suffixIcon: Icon(Icons.calendar_today)),
+                decoration: const InputDecoration(
+                  labelText: "Tanggal Selesai",
+                  suffixIcon: Icon(Icons.calendar_today),
+                ),
                 readOnly: true,
-                onTap: () => _pickDate(context, _endDateController, (val) => _endDate = val),
+                onTap: () => _pickDate(
+                  context,
+                  _endDateController,
+                  (val) => _endDate = val,
+                ),
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -100,19 +119,44 @@ class _EditTournamentFormPageState extends State<EditTournamentFormPage> {
                 onChanged: (val) => _prizePool = val,
               ),
               const SizedBox(height: 16),
+              
+              // 2. PERBAIKAN: Menambahkan Field Deskripsi yang Hilang
+              TextFormField(
+                initialValue: _description,
+                decoration: const InputDecoration(
+                  labelText: "Deskripsi",
+                  alignLabelWithHint: true,
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+                onChanged: (val) => _description = val,
+              ),
+              
+              const SizedBox(height: 16),
               TextFormField(
                 initialValue: _bannerImage,
                 decoration: const InputDecoration(labelText: "Banner URL"),
                 onChanged: (val) => _bannerImage = val,
               ),
               const SizedBox(height: 40),
-              
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: _themeColor, padding: const EdgeInsets.all(16)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _themeColor,
+                    padding: const EdgeInsets.all(16),
+                  ),
                   onPressed: _isLoading ? null : () => _submitEdit(request),
-                  child: const Text("UPDATE TURNAMEN", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          "UPDATE TURNAMEN",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -125,19 +169,19 @@ class _EditTournamentFormPageState extends State<EditTournamentFormPage> {
   Future<void> _submitEdit(CookieRequest request) async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
-  
-    String baseUrl = kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
-    
+
+    String baseUrl = AppConfig.baseUrl;
+
     try {
       final response = await request.postJson(
-        "$baseUrl/tournament/api/edit/${widget.tournament.id}/", 
+        "$baseUrl/tournament/api/edit/${widget.tournament.id}/",
         jsonEncode({
           'name': _name,
           'sport_type': _sportType,
           'location': _location,
           'start_date': _startDate,
-          'end_date': _endDate.isNotEmpty ? _endDate : null, 
-          'description': _description,
+          'end_date': _endDate.isNotEmpty ? _endDate : null,
+          'description': _description, 
           'prize_pool': _prizePool,
           'banner_image': _bannerImage.isNotEmpty ? _bannerImage : null,
         }),
@@ -145,20 +189,42 @@ class _EditTournamentFormPageState extends State<EditTournamentFormPage> {
 
       if (mounted) {
         if (response['status'] == 'success') {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Berhasil diupdate!")));
-          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const TournamentListPage()), (route) => false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Berhasil diupdate!"),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const TournamentListPage()),
+            (route) => false,
+          );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(response['message'])));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response['message'] ?? "Gagal update"),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       }
     } catch (e) {
-       print(e);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e")),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _pickDate(BuildContext context, TextEditingController controller, Function(String) setDateState) async {
+  Future<void> _pickDate(
+    BuildContext context,
+    TextEditingController controller,
+    Function(String) setDateState,
+  ) async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -166,8 +232,12 @@ class _EditTournamentFormPageState extends State<EditTournamentFormPage> {
       lastDate: DateTime(2100),
     );
     if (pickedDate != null) {
-      String formattedDate = "${pickedDate.year}-${pickedDate.month.toString().padLeft(2,'0')}-${pickedDate.day.toString().padLeft(2,'0')}";
-      setState(() { controller.text = formattedDate; setDateState(formattedDate); });
+      String formattedDate =
+          "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+      setState(() {
+        controller.text = formattedDate;
+        setDateState(formattedDate);
+      });
     }
   }
 }
