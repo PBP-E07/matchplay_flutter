@@ -6,6 +6,7 @@ import '../models/tournament.dart';
 import '../widgets/tournament_card.dart';
 import 'tournament_form.dart';
 import 'tournament_detail.dart';
+import 'package:matchplay_flutter/widgets/custom_bottom_navbar.dart'; 
 
 class TournamentListPage extends StatefulWidget {
   const TournamentListPage({super.key});
@@ -17,8 +18,6 @@ class TournamentListPage extends StatefulWidget {
 class _TournamentListPageState extends State<TournamentListPage> {
   Future<List<Tournament>> fetchTournaments(CookieRequest request) async {
     String url = '${AppConfig.baseUrl}/tournament/json/';
-
-    // print("Requesting to: $url");
 
     try {
       final response = await request.get(url);
@@ -39,10 +38,8 @@ class _TournamentListPageState extends State<TournamentListPage> {
           }
         }
       }
-      // print("Berhasil load: ${listTournament.length} turnamen");
       return listTournament;
     } catch (e) {
-      // print("Error Fetch: $e");
       return [];
     }
   }
@@ -51,8 +48,24 @@ class _TournamentListPageState extends State<TournamentListPage> {
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
 
+    bool isAdmin = false;
+    if (request.jsonData.containsKey('is_superuser')) {
+      isAdmin = request.jsonData['is_superuser'];
+    } else if (request.jsonData.containsKey('username')) {
+       isAdmin = request.jsonData['username'] == 'admin'; 
+    }
+
+    final int pageIndex = isAdmin ? 2 : 1;
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
+      
+      // --- TAMBAHKAN NAVBAR DI SINI ---
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: pageIndex,
+        isAdmin: isAdmin,
+      ),
+
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,8 +153,6 @@ class _TournamentListPageState extends State<TournamentListPage> {
                     itemBuilder: (_, index) {
                       return TournamentCard(
                         tournament: snapshot.data![index],
-
-                        // UPDATE
                         onTap: () async {
                           final result = await Navigator.push(
                             context,
